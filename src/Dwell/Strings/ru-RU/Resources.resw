@@ -1,0 +1,325 @@
+<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <data name="AppTitle" xml:space="preserve">
+    <value>Dwell</value>
+  </data>
+  <data name="OverviewNav.Content" xml:space="preserve">
+    <value>Обзор</value>
+  </data>
+  <data name="SettingsNav.Content" xml:space="preserve">
+    <value>Настройки</value>
+  </data>
+  <data name="SettingsTitle.Text" xml:space="preserve">
+    <value>Настройки</value>
+  </data>
+  <data name="Day" xml:space="preserve">
+    <value>День</value>
+  </data>
+  <data name="Week" xml:space="preserve">
+    <value>Неделя</value>
+  </data>
+  <data name="DayTab.Text" xml:space="preserve">
+    <value>День</value>
+  </data>
+  <data name="WeekTab.Text" xml:space="preserve">
+    <value>Неделя</value>
+  </data>
+  <data name="PreviousPeriodLabel" xml:space="preserve">
+    <value>Предыдущий период</value>
+  </data>
+  <data name="NextPeriodLabel" xml:space="preserve">
+    <value>Следующий период</value>
+  </data>
+  <data name="HoursMinutes" xml:space="preserve">
+    <value>{0} ч {1} мин</value>
+  </data>
+  <data name="Minutes" xml:space="preserve">
+    <value>{0} мин</value>
+  </data>
+  <data name="Hours" xml:space="preserve">
+    <value>{0} ч</value>
+  </data>
+  <data name="LessThanMinute" xml:space="preserve">
+    <value>&lt;1 мин</value>
+  </data>
+  <data name="DailyAverage" xml:space="preserve">
+    <value>В среднем {0} в день</value>
+  </data>
+  <data name="DateRange" xml:space="preserve">
+    <value>{0} - {1}</value>
+  </data>
+  <data name="Weekdays" xml:space="preserve">
+    <value>П|В|С|Ч|П|С|В</value>
+  </data>
+  <data name="CategoryCommunication" xml:space="preserve">
+    <value>Общение</value>
+  </data>
+  <data name="CategoryProductivity" xml:space="preserve">
+    <value>Продуктивность</value>
+  </data>
+  <data name="CategoryEntertainment" xml:space="preserve">
+    <value>Развлечения</value>
+  </data>
+  <data name="CategoryGames" xml:space="preserve">
+    <value>Игры</value>
+  </data>
+  <data name="CategoryOther" xml:space="preserve">
+    <value>Другое</value>
+  </data>
+  <data name="EmptyState.Text" xml:space="preserve">
+    <value>Нет данных</value>
+  </data>
+  <data name="MostUsedTitle.Text" xml:space="preserve">
+    <value>Активность приложений</value>
+  </data>
+  <data name="ShowMore.Content" xml:space="preserve">
+    <value>Ещё</value>
+  </data>
+  <data name="ChangeCategoryLabel" xml:space="preserve">
+    <value>Изменить категорию</value>
+  </data>
+  <data name="CategoryLabel.Text" xml:space="preserve">
+    <value>Категория</value>
+  </data>
+  <data name="ThemeCombo.Header" xml:space="preserve">
+    <value>Тема</value>
+  </data>
+  <data name="SystemTheme.Content" xml:space="preserve">
+    <value>Системная</value>
+  </data>
+  <data name="LightTheme.Content" xml:space="preserve">
+    <value>Светлая</value>
+  </data>
+  <data name="DarkTheme.Content" xml:space="preserve">
+    <value>Тёмная</value>
+  </data>
+  <data name="LanguageCombo.Header" xml:space="preserve">
+    <value>Язык</value>
+  </data>
+  <data name="SystemLanguage.Content" xml:space="preserve">
+    <value>Системный</value>
+  </data>
+  <data name="RussianLanguage.Content" xml:space="preserve">
+    <value>Русский</value>
+  </data>
+  <data name="EnglishLanguage.Content" xml:space="preserve">
+    <value>English</value>
+  </data>
+  <data name="IdleMinutes.Header" xml:space="preserve">
+    <value>Простой, мин</value>
+  </data>
+  <data name="AutoStart.Header" xml:space="preserve">
+    <value>Запускать в трее при входе в Windows</value>
+  </data>
+  <data name="StartupSettingsLink.Content" xml:space="preserve">
+    <value>Автозагрузка Windows</value>
+  </data>
+  <data name="StartupSettingsError" xml:space="preserve">
+    <value>Не удалось открыть автозагрузку Windows.</value>
+  </data>
+  <data name="TrayOpen.Text" xml:space="preserve">
+    <value>Открыть Dwell</value>
+  </data>
+  <data name="TrayExit.Text" xml:space="preserve">
+    <value>Выйти</value>
+  </data>
+  <data name="StorageError" xml:space="preserve">
+    <value>Не удалось сохранить данные. Проверьте свободное место.</value>
+  </data>
+  <data name="SettingsError" xml:space="preserve">
+    <value>Не удалось сохранить настройки.</value>
+  </data>
+  <data name="UpdateDialogTitle" xml:space="preserve">
+    <value>Обновление</value>
+  </data>
+  <data name="InstallUpdate.Content" xml:space="preserve">
+    <value>Установить обновление</value>
+  </data>
+  <data name="UpdateError" xml:space="preserve">
+    <value>Не удалось установить обновление. Выберите более новую версию Dwell и проверьте доступ к папке.</value>
+  </data>
+  <data name="UpdateConfirmation" xml:space="preserve">
+    <value>Установить Dwell {0}?</value>
+  </data>
+  <data name="UpdateRestart" xml:space="preserve">
+    <value>Установить</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Отмена</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Закрыть</value>
+  </data>
+  <data name="ExitErrorTitle" xml:space="preserve">
+    <value>Данные не сохранены</value>
+  </data>
+  <data name="UpdateFailedRollback" xml:space="preserve">
+    <value>Обновление отменено. Восстановлена предыдущая версия.</value>
+  </data>
+  <data name="ActivityTitle" xml:space="preserve">
+    <value>Активность</value>
+  </data>
+  <data name="RulesTitle" xml:space="preserve">
+    <value>Лимиты и отдых</value>
+  </data>
+  <data name="DailyLimits" xml:space="preserve">
+    <value>Дневные лимиты</value>
+  </data>
+  <data name="LimitTarget" xml:space="preserve">
+    <value>Приложение или категория</value>
+  </data>
+  <data name="LimitMinutes" xml:space="preserve">
+    <value>Минут в день</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Удалить</value>
+  </data>
+  <data name="Enabled" xml:space="preserve">
+    <value>Включён</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Добавить</value>
+  </data>
+  <data name="LimitUsage" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
+  <data name="WholePC" xml:space="preserve">
+    <value>Весь ПК</value>
+  </data>
+  <data name="Downtime" xml:space="preserve">
+    <value>Расписание отдыха</value>
+  </data>
+  <data name="StartTime" xml:space="preserve">
+    <value>Начало</value>
+  </data>
+  <data name="EndTime" xml:space="preserve">
+    <value>Окончание</value>
+  </data>
+  <data name="AlwaysAllowed" xml:space="preserve">
+    <value>Без лимитов</value>
+  </data>
+  <data name="ChooseApp" xml:space="preserve">
+    <value>Приложение</value>
+  </data>
+  <data name="BreakReminders" xml:space="preserve">
+    <value>Напоминания о перерывах</value>
+  </data>
+  <data name="BreakInterval" xml:space="preserve">
+    <value>Интервал, мин</value>
+  </data>
+  <data name="ExportCsv" xml:space="preserve">
+    <value>Экспорт CSV</value>
+  </data>
+  <data name="SearchApps" xml:space="preserve">
+    <value>Поиск приложений</value>
+  </data>
+  <data name="NoSessions" xml:space="preserve">
+    <value>Сессий не найдено</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Обновить</value>
+  </data>
+  <data name="HistorySummary" xml:space="preserve">
+    <value>Сессий: {0}, всего {1}</value>
+  </data>
+  <data name="CsvApp" xml:space="preserve">
+    <value>Приложение</value>
+  </data>
+  <data name="CsvCategory" xml:space="preserve">
+    <value>Категория</value>
+  </data>
+  <data name="CsvStart" xml:space="preserve">
+    <value>Начало</value>
+  </data>
+  <data name="CsvEnd" xml:space="preserve">
+    <value>Конец</value>
+  </data>
+  <data name="CsvSeconds" xml:space="preserve">
+    <value>Секунды</value>
+  </data>
+  <data name="ExportSaved" xml:space="preserve">
+    <value>CSV сохранён</value>
+  </data>
+  <data name="ExportError" xml:space="preserve">
+    <value>Не удалось сохранить CSV</value>
+  </data>
+  <data name="Pause" xml:space="preserve">
+    <value>Пауза</value>
+  </data>
+  <data name="Resume" xml:space="preserve">
+    <value>Продолжить</value>
+  </data>
+  <data name="PauseTracking" xml:space="preserve">
+    <value>Приостановить учёт</value>
+  </data>
+  <data name="ResumeTracking" xml:space="preserve">
+    <value>Продолжить учёт</value>
+  </data>
+  <data name="TrackingPaused" xml:space="preserve">
+    <value>Учёт приостановлен</value>
+  </data>
+  <data name="LimitReached" xml:space="preserve">
+    <value>{0}: дневной лимит {1} мин достигнут</value>
+  </data>
+  <data name="DowntimeReminder" xml:space="preserve">
+    <value>Началось время отдыха по вашему расписанию</value>
+  </data>
+  <data name="BreakReminder" xml:space="preserve">
+    <value>Вы за ПК {0} мин. Время для перерыва.</value>
+  </data>
+  <data name="ViewSessions" xml:space="preserve">
+    <value>Сессии</value>
+  </data>
+  <data name="CategoryMenu" xml:space="preserve">
+    <value>Категория: {0}</value>
+  </data>
+  <data name="PeriodWeek" xml:space="preserve">
+    <value>За неделю</value>
+  </data>
+  <data name="PeriodDay" xml:space="preserve">
+    <value>За день</value>
+  </data>
+  <data name="ComparedMore" xml:space="preserve">
+    <value>На {0}% больше, чем {1}</value>
+  </data>
+  <data name="ComparedLess" xml:space="preserve">
+    <value>На {0}% меньше, чем {1}</value>
+  </data>
+  <data name="PreviousWeek" xml:space="preserve">
+    <value>за прошлую неделю</value>
+  </data>
+  <data name="PreviousDay" xml:space="preserve">
+    <value>за прошлый день</value>
+  </data>
+  <data name="ActiveApps" xml:space="preserve">
+    <value>Приложения</value>
+  </data>
+  <data name="Sessions" xml:space="preserve">
+    <value>Сессии</value>
+  </data>
+  <data name="LongestSession" xml:space="preserve">
+    <value>Макс. сессия</value>
+  </data>
+  <data name="PeakDay" xml:space="preserve">
+    <value>Активный день</value>
+  </data>
+  <data name="PeakHour" xml:space="preserve">
+    <value>Активный час</value>
+  </data>
+  <data name="Seconds" xml:space="preserve">
+    <value>{0} с</value>
+  </data>
+  <data name="AddLimit" xml:space="preserve"><value>Добавить лимит</value></data>
+  <data name="AddException" xml:space="preserve"><value>Добавить исключение</value></data>
+  <data name="PeakCpu" xml:space="preserve"><value>Макс. CPU</value></data>
+  <data name="PeakRam" xml:space="preserve"><value>Макс. RAM</value></data>
+  <data name="MemoryMb" xml:space="preserve"><value>{0} МБ</value></data>
+  <data name="ScreenTimeRow" xml:space="preserve"><value>На экране: {0}</value></data>
+  <data name="BackgroundTimeRow" xml:space="preserve"><value>В фоне: {0}</value></data>
+  <data name="NotMeasured" xml:space="preserve"><value>Нет данных</value></data>
+  <data name="Today" xml:space="preserve"><value>Сегодня</value></data>
+  <data name="CurrentWeek" xml:space="preserve"><value>Эта неделя</value></data>
+  <data name="PcSleep" xml:space="preserve"><value>Сон</value></data>
+  <data name="PcOff" xml:space="preserve"><value>Выключения</value></data>
+  <data name="PcRestart" xml:space="preserve"><value>Перезагрузки</value></data>
+</root>

@@ -1,0 +1,17 @@
+<UserControl x:Class="Dwell.Views.UsageChart" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:lvc="using:LiveChartsCore.SkiaSharpView.WinUI">
+  <Grid>
+    <StackPanel Opacity="0" IsHitTestVisible="False" Width="0" Height="0">
+      <Rectangle x:Name="Swatch0" Fill="{ThemeResource DwellCommunicationBrush}" />
+      <Rectangle x:Name="Swatch1" Fill="{ThemeResource DwellProductivityBrush}" />
+      <Rectangle x:Name="Swatch2" Fill="{ThemeResource DwellEntertainmentBrush}" />
+      <Rectangle x:Name="Swatch3" Fill="{ThemeResource DwellGamesBrush}" />
+      <Rectangle x:Name="Swatch4" Fill="{ThemeResource DwellOtherBrush}" />
+      <Rectangle x:Name="TextSwatch" Fill="{ThemeResource TextFillColorSecondaryBrush}" />
+      <Rectangle x:Name="GridSwatch" Fill="{ThemeResource DividerStrokeColorDefaultBrush}" />
+      <Rectangle x:Name="TooltipBackgroundSwatch" Fill="{ThemeResource SolidBackgroundFillColorBaseBrush}" />
+      <Rectangle x:Name="TooltipTextSwatch" Fill="{ThemeResource TextFillColorPrimaryBrush}" />
+    </StackPanel>
+    <lvc:CartesianChart x:Name="Chart" Background="{ThemeResource SolidBackgroundFillColorSecondaryBrush}" Height="280"
+                        LegendPosition="Hidden" TooltipPosition="Top" FindingStrategy="CompareOnlyXTakeClosest" AnimationsSpeed="0:0:0" />
+  </Grid>
+</UserControl>

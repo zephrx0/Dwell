@@ -1,0 +1,325 @@
+<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <data name="AppTitle" xml:space="preserve">
+    <value>Dwell</value>
+  </data>
+  <data name="OverviewNav.Content" xml:space="preserve">
+    <value>Overview</value>
+  </data>
+  <data name="SettingsNav.Content" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="SettingsTitle.Text" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Day" xml:space="preserve">
+    <value>Day</value>
+  </data>
+  <data name="Week" xml:space="preserve">
+    <value>Week</value>
+  </data>
+  <data name="DayTab.Text" xml:space="preserve">
+    <value>Day</value>
+  </data>
+  <data name="WeekTab.Text" xml:space="preserve">
+    <value>Week</value>
+  </data>
+  <data name="PreviousPeriodLabel" xml:space="preserve">
+    <value>Previous period</value>
+  </data>
+  <data name="NextPeriodLabel" xml:space="preserve">
+    <value>Next period</value>
+  </data>
+  <data name="HoursMinutes" xml:space="preserve">
+    <value>{0} hr {1} min</value>
+  </data>
+  <data name="Minutes" xml:space="preserve">
+    <value>{0} min</value>
+  </data>
+  <data name="Hours" xml:space="preserve">
+    <value>{0} hr</value>
+  </data>
+  <data name="LessThanMinute" xml:space="preserve">
+    <value>&lt;1 min</value>
+  </data>
+  <data name="DailyAverage" xml:space="preserve">
+    <value>{0} daily average</value>
+  </data>
+  <data name="DateRange" xml:space="preserve">
+    <value>{0} - {1}</value>
+  </data>
+  <data name="Weekdays" xml:space="preserve">
+    <value>M|T|W|T|F|S|S</value>
+  </data>
+  <data name="CategoryCommunication" xml:space="preserve">
+    <value>Social</value>
+  </data>
+  <data name="CategoryProductivity" xml:space="preserve">
+    <value>Productivity</value>
+  </data>
+  <data name="CategoryEntertainment" xml:space="preserve">
+    <value>Entertainment</value>
+  </data>
+  <data name="CategoryGames" xml:space="preserve">
+    <value>Games</value>
+  </data>
+  <data name="CategoryOther" xml:space="preserve">
+    <value>Other</value>
+  </data>
+  <data name="EmptyState.Text" xml:space="preserve">
+    <value>No activity</value>
+  </data>
+  <data name="MostUsedTitle.Text" xml:space="preserve">
+    <value>App activity</value>
+  </data>
+  <data name="ShowMore.Content" xml:space="preserve">
+    <value>Show more</value>
+  </data>
+  <data name="ChangeCategoryLabel" xml:space="preserve">
+    <value>Change category</value>
+  </data>
+  <data name="CategoryLabel.Text" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="ThemeCombo.Header" xml:space="preserve">
+    <value>Theme</value>
+  </data>
+  <data name="SystemTheme.Content" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="LightTheme.Content" xml:space="preserve">
+    <value>Light</value>
+  </data>
+  <data name="DarkTheme.Content" xml:space="preserve">
+    <value>Dark</value>
+  </data>
+  <data name="LanguageCombo.Header" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="SystemLanguage.Content" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="RussianLanguage.Content" xml:space="preserve">
+    <value>Русский</value>
+  </data>
+  <data name="EnglishLanguage.Content" xml:space="preserve">
+    <value>English</value>
+  </data>
+  <data name="IdleMinutes.Header" xml:space="preserve">
+    <value>Idle after, min</value>
+  </data>
+  <data name="AutoStart.Header" xml:space="preserve">
+    <value>Start in tray at sign-in</value>
+  </data>
+  <data name="StartupSettingsLink.Content" xml:space="preserve">
+    <value>Windows startup apps</value>
+  </data>
+  <data name="StartupSettingsError" xml:space="preserve">
+    <value>Could not open Windows startup settings.</value>
+  </data>
+  <data name="TrayOpen.Text" xml:space="preserve">
+    <value>Open Dwell</value>
+  </data>
+  <data name="TrayExit.Text" xml:space="preserve">
+    <value>Quit</value>
+  </data>
+  <data name="StorageError" xml:space="preserve">
+    <value>Could not save data. Check free space.</value>
+  </data>
+  <data name="SettingsError" xml:space="preserve">
+    <value>Could not save settings.</value>
+  </data>
+  <data name="UpdateDialogTitle" xml:space="preserve">
+    <value>Update</value>
+  </data>
+  <data name="InstallUpdate.Content" xml:space="preserve">
+    <value>Install update</value>
+  </data>
+  <data name="UpdateError" xml:space="preserve">
+    <value>Could not install the update. Choose a later version of Dwell and check folder access.</value>
+  </data>
+  <data name="UpdateConfirmation" xml:space="preserve">
+    <value>Install Dwell {0}?</value>
+  </data>
+  <data name="UpdateRestart" xml:space="preserve">
+    <value>Install</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="ExitErrorTitle" xml:space="preserve">
+    <value>Data not saved</value>
+  </data>
+  <data name="UpdateFailedRollback" xml:space="preserve">
+    <value>Update failed. The previous version was restored.</value>
+  </data>
+  <data name="ActivityTitle" xml:space="preserve">
+    <value>Activity</value>
+  </data>
+  <data name="RulesTitle" xml:space="preserve">
+    <value>Limits and breaks</value>
+  </data>
+  <data name="DailyLimits" xml:space="preserve">
+    <value>Daily limits</value>
+  </data>
+  <data name="LimitTarget" xml:space="preserve">
+    <value>App or category</value>
+  </data>
+  <data name="LimitMinutes" xml:space="preserve">
+    <value>Minutes per day</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="Enabled" xml:space="preserve">
+    <value>Enabled</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="LimitUsage" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
+  <data name="WholePC" xml:space="preserve">
+    <value>All PC usage</value>
+  </data>
+  <data name="Downtime" xml:space="preserve">
+    <value>Downtime schedule</value>
+  </data>
+  <data name="StartTime" xml:space="preserve">
+    <value>Start</value>
+  </data>
+  <data name="EndTime" xml:space="preserve">
+    <value>End</value>
+  </data>
+  <data name="AlwaysAllowed" xml:space="preserve">
+    <value>No limits</value>
+  </data>
+  <data name="ChooseApp" xml:space="preserve">
+    <value>App</value>
+  </data>
+  <data name="BreakReminders" xml:space="preserve">
+    <value>Break reminders</value>
+  </data>
+  <data name="BreakInterval" xml:space="preserve">
+    <value>Interval, min</value>
+  </data>
+  <data name="ExportCsv" xml:space="preserve">
+    <value>Export CSV</value>
+  </data>
+  <data name="SearchApps" xml:space="preserve">
+    <value>Search apps</value>
+  </data>
+  <data name="NoSessions" xml:space="preserve">
+    <value>No sessions found</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="HistorySummary" xml:space="preserve">
+    <value>Sessions: {0}, total {1}</value>
+  </data>
+  <data name="CsvApp" xml:space="preserve">
+    <value>App</value>
+  </data>
+  <data name="CsvCategory" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="CsvStart" xml:space="preserve">
+    <value>Start</value>
+  </data>
+  <data name="CsvEnd" xml:space="preserve">
+    <value>End</value>
+  </data>
+  <data name="CsvSeconds" xml:space="preserve">
+    <value>Seconds</value>
+  </data>
+  <data name="ExportSaved" xml:space="preserve">
+    <value>CSV saved</value>
+  </data>
+  <data name="ExportError" xml:space="preserve">
+    <value>Could not save CSV</value>
+  </data>
+  <data name="Pause" xml:space="preserve">
+    <value>Pause</value>
+  </data>
+  <data name="Resume" xml:space="preserve">
+    <value>Resume</value>
+  </data>
+  <data name="PauseTracking" xml:space="preserve">
+    <value>Pause tracking</value>
+  </data>
+  <data name="ResumeTracking" xml:space="preserve">
+    <value>Resume tracking</value>
+  </data>
+  <data name="TrackingPaused" xml:space="preserve">
+    <value>Tracking paused</value>
+  </data>
+  <data name="LimitReached" xml:space="preserve">
+    <value>{0}: daily limit of {1} min reached</value>
+  </data>
+  <data name="DowntimeReminder" xml:space="preserve">
+    <value>Your scheduled downtime has started</value>
+  </data>
+  <data name="BreakReminder" xml:space="preserve">
+    <value>You have been active for {0} min. Time for a break.</value>
+  </data>
+  <data name="ViewSessions" xml:space="preserve">
+    <value>Sessions</value>
+  </data>
+  <data name="CategoryMenu" xml:space="preserve">
+    <value>Category: {0}</value>
+  </data>
+  <data name="PeriodWeek" xml:space="preserve">
+    <value>This week</value>
+  </data>
+  <data name="PeriodDay" xml:space="preserve">
+    <value>Daily usage</value>
+  </data>
+  <data name="ComparedMore" xml:space="preserve">
+    <value>{0}% more than {1}</value>
+  </data>
+  <data name="ComparedLess" xml:space="preserve">
+    <value>{0}% less than {1}</value>
+  </data>
+  <data name="PreviousWeek" xml:space="preserve">
+    <value>the previous week</value>
+  </data>
+  <data name="PreviousDay" xml:space="preserve">
+    <value>the previous day</value>
+  </data>
+  <data name="ActiveApps" xml:space="preserve">
+    <value>Apps</value>
+  </data>
+  <data name="Sessions" xml:space="preserve">
+    <value>Sessions</value>
+  </data>
+  <data name="LongestSession" xml:space="preserve">
+    <value>Longest session</value>
+  </data>
+  <data name="PeakDay" xml:space="preserve">
+    <value>Busiest day</value>
+  </data>
+  <data name="PeakHour" xml:space="preserve">
+    <value>Busiest hour</value>
+  </data>
+  <data name="Seconds" xml:space="preserve">
+    <value>{0} sec</value>
+  </data>
+  <data name="AddLimit" xml:space="preserve"><value>Add limit</value></data>
+  <data name="AddException" xml:space="preserve"><value>Add exception</value></data>
+  <data name="PeakCpu" xml:space="preserve"><value>Peak CPU</value></data>
+  <data name="PeakRam" xml:space="preserve"><value>Peak RAM</value></data>
+  <data name="MemoryMb" xml:space="preserve"><value>{0} MB</value></data>
+  <data name="ScreenTimeRow" xml:space="preserve"><value>On screen: {0}</value></data>
+  <data name="BackgroundTimeRow" xml:space="preserve"><value>Background: {0}</value></data>
+  <data name="NotMeasured" xml:space="preserve"><value>No data</value></data>
+  <data name="Today" xml:space="preserve"><value>Today</value></data>
+  <data name="CurrentWeek" xml:space="preserve"><value>This week</value></data>
+  <data name="PcSleep" xml:space="preserve"><value>Sleep</value></data>
+  <data name="PcOff" xml:space="preserve"><value>Shutdowns</value></data>
+  <data name="PcRestart" xml:space="preserve"><value>Restarts</value></data>
+</root>

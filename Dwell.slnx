@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="src/Dwell.Core/Dwell.Core.csproj" />
+  <Project Path="src/Dwell/Dwell.csproj" />
+  <Project Path="tests/Dwell.Core.Tests/Dwell.Core.Tests.csproj" />
+</Solution>
