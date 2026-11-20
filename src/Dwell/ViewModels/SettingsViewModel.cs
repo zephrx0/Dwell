@@ -1,53 +1,28 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using Dwell.Core;
 using Dwell.Services;
 
 namespace Dwell.ViewModels;
 
-public sealed record ExcludedAppItem(string Key, string Name)
-{
-    public string RestoreLabel => Strings.Get("RestoreToStatistics");
-}
-
 public sealed partial class SettingsViewModel : ObservableObject
 {
     private readonly SettingsService _settings;
-    private readonly AppRepository _repository;
     private bool _initializing = true;
     [ObservableProperty] public partial int ThemeIndex { get; set; }
     [ObservableProperty] public partial double IdleMinutes { get; set; }
     [ObservableProperty] public partial int LanguageIndex { get; set; }
     [ObservableProperty] public partial bool AutoStart { get; set; }
     [ObservableProperty] public partial string Error { get; set; } = "";
-    [ObservableProperty] public partial ExcludedAppItem[] ExcludedApps { get; set; } = [];
     public event Action<int>? ThemeChanged;
     public event Action? LanguageChanged;
 
-    public SettingsViewModel(SettingsService settings, AppRepository repository)
+    public SettingsViewModel(SettingsService settings)
     {
         _settings = settings;
-        _repository = repository;
         ThemeIndex = settings.Current.Theme;
         IdleMinutes = settings.Current.IdleMinutes;
         LanguageIndex = settings.Current.Language;
         AutoStart = settings.AutoStart;
         _initializing = false;
-    }
-
-    public void RefreshExcludedApps() => ExcludedApps = UsageProjection.Groups(_repository.KnownApps(), includeIgnored: true)
-        .Where(group => group.Variants.Any(app => app.Ignored))
-        .Select(group => new ExcludedAppItem(group.Key, ApplicationPolicy.DisplayName(group.App.Name)))
-        .OrderBy(app => app.Name, StringComparer.Create(Strings.Culture, ignoreCase: true)).ToArray();
-
-    public void RestoreApp(ExcludedAppItem app)
-    {
-        try
-        {
-            _repository.SetIgnored(app.Key, false);
-            RefreshExcludedApps();
-            Error = "";
-        }
-        catch (Exception ex) when (ex is Microsoft.Data.Sqlite.SqliteException or IOException) { Error = Strings.Get("StorageError"); }
     }
 
     partial void OnThemeIndexChanged(int value)

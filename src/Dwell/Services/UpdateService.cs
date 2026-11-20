@@ -13,7 +13,7 @@ public sealed class UpdateService
     private const string LatestRelease = "https://api.github.com/repos/zephrx0/Dwell/releases/latest";
     private const string InstallerName = "Dwell-Setup.exe";
     private const long MaxInstallerSize = 256L * 1024 * 1024;
-    private static readonly HttpClient Client = new() { DefaultRequestHeaders = { UserAgent = { new("Dwell") } } };
+    private static readonly HttpClient Client = new() { DefaultRequestHeaders = { UserAgent = { new("Dwell", null) } } };
     private readonly HttpClient _client;
     private readonly Version _currentVersion;
     private readonly string _directory;

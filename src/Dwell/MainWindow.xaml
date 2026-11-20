@@ -20,7 +20,12 @@
       </VisualStateManager.VisualStateGroups>
       <Grid x:Name="FallbackSurface" Background="{ThemeResource SolidBackgroundFillColorBaseBrush}" />
       <NavigationView x:Name="Navigation" IsBackButtonVisible="Collapsed" IsSettingsVisible="False" PaneDisplayMode="Auto" OpenPaneLength="184" CompactModeThresholdWidth="0" ExpandedModeThresholdWidth="980" SelectionChanged="NavigationChanged">
-        <NavigationView.MenuItems><NavigationViewItem x:Name="OverviewItem" x:Uid="OverviewNav" Tag="overview" Icon="ViewAll" IsSelected="True" /><NavigationViewItem x:Name="ActivityItem" Tag="activity" Icon="Clock" /><NavigationViewItem x:Name="RulesItem" Tag="rules" Icon="Manage" /></NavigationView.MenuItems>
+        <NavigationView.MenuItems>
+          <NavigationViewItem x:Name="OverviewItem" x:Uid="OverviewNav" Tag="overview" Icon="ViewAll" IsSelected="True" />
+          <NavigationViewItem x:Name="ActivityItem" Tag="activity" Icon="Clock" />
+          <NavigationViewItem x:Name="RulesItem" Tag="rules" Icon="Manage" />
+          <NavigationViewItem x:Name="ExcludedAppsItem" Tag="excluded" Icon="View" />
+        </NavigationView.MenuItems>
         <NavigationView.FooterMenuItems><NavigationViewItem x:Name="SettingsItem" x:Uid="SettingsNav" Tag="settings" Icon="Setting" /></NavigationView.FooterMenuItems>
         <Grid>
           <ScrollViewer x:Name="OverviewScroll" HorizontalScrollBarVisibility="Disabled">
@@ -137,6 +142,27 @@
           </ScrollViewer>
           <views:ActivityView x:Name="HistoryPage" DataContext="{x:Bind Activity}" Visibility="Collapsed" />
           <views:RulesView x:Name="LimitsPage" DataContext="{x:Bind Rules}" Visibility="Collapsed" />
+          <ScrollViewer x:Name="ExcludedAppsScroll" Visibility="Collapsed" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Padding="16,12,16,16" Spacing="12" MaxWidth="640" HorizontalAlignment="Left" DataContext="{x:Bind ExcludedApps}">
+              <TextBlock x:Name="ExcludedAppsHeading" FontSize="24" FontWeight="SemiBold" />
+              <TextBlock x:Name="ExcludedAppsEmpty" Visibility="{Binding HasApps, Converter={StaticResource BoolVisibility}, ConverterParameter=Invert}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+              <ItemsControl ItemsSource="{Binding Apps}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:ExcludedAppItem">
+                    <Grid ColumnSpacing="12" Padding="12,8" Margin="0,0,0,6" CornerRadius="6" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                      <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                      <StackPanel Spacing="2" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{Binding Name}" />
+                        <TextBlock Text="{Binding Executable}" FontSize="12" TextTrimming="CharacterEllipsis" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                      </StackPanel>
+                      <Button Grid.Column="1" Content="{Binding RestoreLabel}" Click="RestoreAppClicked" VerticalAlignment="Center" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <TextBlock Text="{Binding Error}" Visibility="{Binding Error, Converter={StaticResource TextVisibility}}" Foreground="{ThemeResource SystemFillColorCriticalBrush}" TextWrapping="Wrap" />
+            </StackPanel>
+          </ScrollViewer>
           <ScrollViewer x:Name="SettingsScroll" Visibility="Collapsed" HorizontalScrollBarVisibility="Disabled">
             <StackPanel Padding="16,12,16,16" Spacing="12" DataContext="{x:Bind Settings}">
               <TextBlock x:Name="SettingsHeading" x:Uid="SettingsTitle" FontSize="24" FontWeight="SemiBold" />
@@ -148,20 +174,6 @@
               <StackPanel Spacing="4">
                 <ToggleSwitch x:Name="StartupSwitch" x:Uid="AutoStart" IsOn="{x:Bind Settings.AutoStart, Mode=TwoWay}" OnContent="" OffContent="" />
                 <HyperlinkButton x:Name="StartupSettingsLink" x:Uid="StartupSettingsLink" Click="OpenStartupSettings" Padding="0,4" HorizontalAlignment="Left" />
-              </StackPanel>
-              <StackPanel Spacing="4">
-                <TextBlock x:Name="ExcludedAppsHeading" FontWeight="SemiBold" />
-                <TextBlock x:Name="ExcludedAppsHint" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
-                <ItemsControl ItemsSource="{Binding ExcludedApps}">
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                      <views:InlineWrapPanel ColumnSpacing="12" RowSpacing="4">
-                        <TextBlock Text="{Binding Name}" VerticalAlignment="Center" TextWrapping="Wrap" />
-                        <Button Content="{Binding RestoreLabel}" Style="{StaticResource SubtleButtonStyle}" Click="RestoreAppClicked" />
-                      </views:InlineWrapPanel>
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
               </StackPanel>
               <TextBlock Text="{Binding Error}" Visibility="{Binding Error, Converter={StaticResource TextVisibility}}" Foreground="{ThemeResource SystemFillColorCriticalBrush}" TextWrapping="Wrap" />
               <StackPanel Spacing="4">
@@ -176,7 +188,16 @@
           </ScrollViewer>
         </Grid>
       </NavigationView>
-      <notify:TaskbarIcon Width="0" Height="0" x:Name="TrayIcon" ToolTipText="Dwell" NoLeftClickDelay="True"><notify:TaskbarIcon.ContextFlyout><MenuFlyout><MenuFlyoutItem x:Name="TrayOpen" x:Uid="TrayOpen" Click="TrayOpenClicked" /><MenuFlyoutItem x:Name="TrayPause" Click="PauseClicked" /><MenuFlyoutSeparator /><MenuFlyoutItem x:Name="TrayExit" x:Uid="TrayExit" Click="TrayExitClicked" /></MenuFlyout></notify:TaskbarIcon.ContextFlyout></notify:TaskbarIcon>
+      <notify:TaskbarIcon Width="0" Height="0" x:Name="TrayIcon" ToolTipText="Dwell" NoLeftClickDelay="True">
+        <notify:TaskbarIcon.ContextFlyout>
+          <MenuFlyout>
+            <MenuFlyoutItem x:Name="TrayOpen" x:Uid="TrayOpen" />
+            <MenuFlyoutItem x:Name="TrayPause" />
+            <MenuFlyoutSeparator />
+            <MenuFlyoutItem x:Name="TrayExit" x:Uid="TrayExit" />
+          </MenuFlyout>
+        </notify:TaskbarIcon.ContextFlyout>
+      </notify:TaskbarIcon>
     </Grid>
   </UserControl>
 </Window>

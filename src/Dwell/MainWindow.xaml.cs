@@ -21,6 +21,7 @@ public sealed partial class MainWindow : Window
 {
     public OverviewViewModel Overview { get; }
     public SettingsViewModel Settings { get; }
+    public ExcludedAppsViewModel ExcludedApps { get; }
     public ActivityViewModel Activity { get; }
     public RulesViewModel Rules { get; }
     private readonly TrackingService _tracker;
@@ -42,9 +43,9 @@ public sealed partial class MainWindow : Window
     private MicaController? _mica;
     private SystemBackdropConfiguration? _backdrop;
 
-    public MainWindow(OverviewViewModel overview, SettingsViewModel settings, ActivityViewModel activity, RulesViewModel rules, TrackingService tracker, UpdateService updates, ReminderService reminders)
+    public MainWindow(OverviewViewModel overview, SettingsViewModel settings, ExcludedAppsViewModel excludedApps, ActivityViewModel activity, RulesViewModel rules, TrackingService tracker, UpdateService updates, ReminderService reminders)
     {
-        Overview = overview; Settings = settings; Activity = activity; Rules = rules; _tracker = tracker; _updates = updates; _reminders = reminders;
+        Overview = overview; Settings = settings; ExcludedApps = excludedApps; Activity = activity; Rules = rules; _tracker = tracker; _updates = updates; _reminders = reminders;
         InitializeComponent();
         OverviewScroll.SizeChanged += (_, _) => VisualStateManager.GoToState(AdaptiveHost, OverviewScroll.ActualWidth >= 850 ? "Wide" : "Compact", false);
         Title = Strings.Get("AppTitle");
@@ -68,7 +69,11 @@ public sealed partial class MainWindow : Window
         _reminders.Reminder += NotifyReminder;
         ApplyLanguage();
         TrayIcon.Icon = new Icon(Path.Combine(AppContext.BaseDirectory, "Assets", "Dwell.ico"), 32, 32);
-        TrayIcon.LeftClickCommand = new RelayCommand(Show);
+        var open = new RelayCommand(Show);
+        TrayIcon.LeftClickCommand = open;
+        TrayOpen.Command = open;
+        TrayPause.Command = new RelayCommand(_tracker.TogglePause);
+        TrayExit.Command = new AsyncRelayCommand(() => ExitAsync());
         TrayIcon.ForceCreate(false);
         AppWindow.Closing += (_, args) => { if (!_exiting) { args.Cancel = true; Hide(); } };
         _refreshTimer.Tick += async (_, _) =>
@@ -147,9 +152,9 @@ public sealed partial class MainWindow : Window
         IdleInput.Header = Strings.Get("IdleMinutes.Header");
         StartupSwitch.Header = Strings.Get("AutoStart.Header");
         StartupSettingsLink.Content = Strings.Get("StartupSettingsLink.Content");
-        ExcludedAppsHeading.Text = Strings.Get("ExcludedAppsHeading");
-        ExcludedAppsHint.Text = Strings.Get("ExcludedAppsHint");
-        if (SettingsScroll.Visibility == Visibility.Visible) Settings.RefreshExcludedApps();
+        ExcludedAppsItem.Content = ExcludedAppsHeading.Text = Strings.Get("ExcludedAppsHeading");
+        ExcludedAppsEmpty.Text = Strings.Get("ExcludedAppsEmpty");
+        if (ExcludedAppsScroll.Visibility == Visibility.Visible) ExcludedApps.Refresh();
         UpdatesHeading.Text = Strings.Get("UpdatesHeading");
         RenderUpdateState();
         TrayOpen.Text = Strings.Get("TrayOpen.Text"); TrayExit.Text = Strings.Get("TrayExit.Text");
@@ -178,7 +183,7 @@ public sealed partial class MainWindow : Window
         if (OverviewScroll.Visibility == Visibility.Visible) await Overview.RefreshAsync();
         else if (HistoryPage.Visibility == Visibility.Visible) await Activity.RefreshAsync();
         else if (LimitsPage.Visibility == Visibility.Visible) await Rules.RefreshAsync();
-        else if (SettingsScroll.Visibility == Visibility.Visible) Settings.RefreshExcludedApps();
+        else if (ExcludedAppsScroll.Visibility == Visibility.Visible) ExcludedApps.Refresh();
     }
 
     private void EnsureChart()
@@ -202,6 +207,7 @@ public sealed partial class MainWindow : Window
         if (OverviewScroll is null || SettingsScroll is null) return;
         var page = args.SelectedItemContainer?.Tag as string ?? "overview";
         OverviewScroll.Visibility = page == "overview" ? Visibility.Visible : Visibility.Collapsed;
+        ExcludedAppsScroll.Visibility = page == "excluded" ? Visibility.Visible : Visibility.Collapsed;
         SettingsScroll.Visibility = page == "settings" ? Visibility.Visible : Visibility.Collapsed;
         HistoryPage.Visibility = page == "activity" ? Visibility.Visible : Visibility.Collapsed;
         LimitsPage.Visibility = page == "rules" ? Visibility.Visible : Visibility.Collapsed;
@@ -209,7 +215,7 @@ public sealed partial class MainWindow : Window
         if (page == "overview") { EnsureChart(); await Overview.RefreshAsync(); }
         else if (page == "activity") await Activity.RefreshAsync();
         else if (page == "rules") await Rules.RefreshAsync();
-        else if (page == "settings") Settings.RefreshExcludedApps();
+        else if (page == "excluded") ExcludedApps.Refresh();
     }
 
     private bool IsEditing()
@@ -239,7 +245,6 @@ public sealed partial class MainWindow : Window
             Settings.Error = Strings.Get("StartupSettingsError");
         }
     }
-    private void PauseClicked(object sender, RoutedEventArgs e) => _tracker.TogglePause();
     private void ShowAppHistory(string name, DateTime date, bool week) { Activity.ShowApp(name, date, week); Navigation.SelectedItem = ActivityItem; }
 
     private async void ExcludeAppClicked(object sender, RoutedEventArgs e)
@@ -249,7 +254,7 @@ public sealed partial class MainWindow : Window
 
     private void RestoreAppClicked(object sender, RoutedEventArgs e)
     {
-        if (sender is Button { DataContext: ExcludedAppItem app }) Settings.RestoreApp(app);
+        if (sender is Button { DataContext: ExcludedAppItem app }) ExcludedApps.Restore(app);
     }
 
     private void NotifyReminder(UsageReminder reminder) => DispatcherQueue.TryEnqueue(() =>
@@ -306,9 +311,6 @@ public sealed partial class MainWindow : Window
         else if (message == 0x0005 && wParam == 1) DispatcherQueue.TryEnqueue(Hide);
         return NativeMethods.DefSubclassProc(hwnd, message, wParam, lParam);
     }
-
-    private void TrayOpenClicked(object sender, RoutedEventArgs e) => Show();
-    private async void TrayExitClicked(object sender, RoutedEventArgs e) => await ExitAsync();
 
     private async Task<bool> ExitAsync(string? installer = null)
     {

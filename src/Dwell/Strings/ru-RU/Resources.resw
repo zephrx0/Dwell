@@ -316,7 +316,7 @@
   <data name="PcOff" xml:space="preserve"><value>Выключения</value></data>
   <data name="PcRestart" xml:space="preserve"><value>Перезагрузки</value></data>
   <data name="ExcludeFromStatistics" xml:space="preserve"><value>Исключить из статистики</value></data>
-  <data name="ExcludedAppsHeading" xml:space="preserve"><value>Исключённые приложения</value></data>
-  <data name="ExcludedAppsHint" xml:space="preserve"><value>Чтобы исключить приложение, раскройте его строку в обзоре.</value></data>
+  <data name="ExcludedAppsHeading" xml:space="preserve"><value>Скрытые приложения</value></data>
+  <data name="ExcludedAppsEmpty" xml:space="preserve"><value>Чтобы скрыть приложение из статистики, раскройте его строку в обзоре.</value></data>
   <data name="RestoreToStatistics" xml:space="preserve"><value>Вернуть в статистику</value></data>
 </root>

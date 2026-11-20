@@ -9,7 +9,7 @@
 Dwell учитывает экранное время и фоновую активность приложений на Windows. Статистика хранится локально. Приложение работает офлайн и не собирает телеметрию.
 
 - Графики по дням и неделям, категории и история с экспортом в CSV.
-- Исключение приложений из статистики через обзор и возврат через настройки.
+- Исключение приложений из статистики через обзор и возврат в разделе «Скрытые приложения».
 - Дневные лимиты, расписание отдыха и напоминания о перерывах.
 - Тихий автозапуск в трей, системная тема и русский интерфейс.
 - Фоновая проверка обновлений, уведомления Windows и установка из настроек.
@@ -23,7 +23,7 @@ Dwell учитывает экранное время и фоновую акти�
 Dwell tracks screen time and background app activity on Windows. All usage data stays on your PC. Dwell works offline and collects no telemetry.
 
 - Daily and weekly charts, categories, and usage history with CSV export.
-- Exclude apps from statistics in Overview and restore them in Settings.
+- Exclude apps from statistics in Overview and restore them in Hidden apps.
 - Daily limits, downtime schedules, and break reminders.
 - Quiet startup in the system tray, system theme, and English UI.
 - Background update checks, Windows notifications, and installation from Settings.

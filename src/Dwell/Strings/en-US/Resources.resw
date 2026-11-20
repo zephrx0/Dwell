@@ -316,7 +316,7 @@
   <data name="PcOff" xml:space="preserve"><value>Shutdowns</value></data>
   <data name="PcRestart" xml:space="preserve"><value>Restarts</value></data>
   <data name="ExcludeFromStatistics" xml:space="preserve"><value>Exclude from statistics</value></data>
-  <data name="ExcludedAppsHeading" xml:space="preserve"><value>Excluded apps</value></data>
-  <data name="ExcludedAppsHint" xml:space="preserve"><value>To exclude an app, expand its row in Overview.</value></data>
+  <data name="ExcludedAppsHeading" xml:space="preserve"><value>Hidden apps</value></data>
+  <data name="ExcludedAppsEmpty" xml:space="preserve"><value>Expand an app in Overview to hide it from statistics.</value></data>
   <data name="RestoreToStatistics" xml:space="preserve"><value>Restore to statistics</value></data>
 </root>

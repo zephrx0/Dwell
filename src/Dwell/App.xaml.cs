@@ -25,6 +25,7 @@ public partial class App : Application
             .AddSingleton(_settings).AddSingleton<AppRepository>()
             .AddSingleton<BackgroundTracker>().AddSingleton<ForegroundService>().AddSingleton<TrackingService>()
             .AddSingleton<OverviewViewModel>().AddSingleton<SettingsViewModel>()
+            .AddSingleton<ExcludedAppsViewModel>()
             .AddSingleton<ActivityViewModel>().AddSingleton<RulesViewModel>().AddSingleton<ReminderService>()
             .AddSingleton<UpdateService>().AddSingleton<MainWindow>().BuildServiceProvider();
         _window = _services.GetRequiredService<MainWindow>();
