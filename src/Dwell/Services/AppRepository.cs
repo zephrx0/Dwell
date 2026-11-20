@@ -10,7 +10,8 @@ public sealed class AppRecord
     public required string Name { get; init; }
     public string Icon { get; set; } = "";
     public AppCategory Category { get; set; }
-    public bool Ignored { get; set; }
+    private volatile bool _ignored;
+    public bool Ignored { get => _ignored; set => _ignored = value; }
 }
 
 public sealed record UsageResult(IReadOnlyList<AppRecord> Apps, IReadOnlyList<Session> Sessions);
@@ -117,17 +118,37 @@ public sealed class AppRepository : IDisposable
         {
             if (_apps.TryGetValue(path, out var known)) return known;
             var identity = ApplicationPolicy.Identity(path, name);
-            var existing = _apps.Values.FirstOrDefault(x => ApplicationPolicy.Identity(x.Exe, x.Name) == identity);
-            var category = existing?.Category ?? Categories.GetValueOrDefault(Path.GetFileName(path), AppCategory.Other);
+            var variants = _apps.Values.Where(x => ApplicationPolicy.Identity(x.Exe, x.Name) == identity).ToArray();
+            var category = variants.FirstOrDefault()?.Category ?? Categories.GetValueOrDefault(Path.GetFileName(path), AppCategory.Other);
+            var ignored = variants.Any(x => x.Ignored);
             using var command = _connection.CreateCommand();
-            command.CommandText = "INSERT INTO Apps(exe,name,icon,category) VALUES($exe,$name,$icon,$category) RETURNING id";
+            command.CommandText = "INSERT INTO Apps(exe,name,icon,category,ignored) VALUES($exe,$name,$icon,$category,$ignored) RETURNING id";
             command.Parameters.AddWithValue("$exe", path);
             command.Parameters.AddWithValue("$name", name);
             command.Parameters.AddWithValue("$icon", icon);
             command.Parameters.AddWithValue("$category", (int)category);
-            var app = new AppRecord { Id = (long)command.ExecuteScalar()!, Exe = path, Name = name, Icon = icon, Category = category };
+            command.Parameters.AddWithValue("$ignored", ignored);
+            var app = new AppRecord { Id = (long)command.ExecuteScalar()!, Exe = path, Name = name, Icon = icon, Category = category, Ignored = ignored };
             _apps[path] = app;
             return app;
+        }
+    }
+
+    public void SetIgnored(string key, bool ignored)
+    {
+        lock (_sync)
+        {
+            var variants = _apps.Values.Where(x => ApplicationPolicy.Identity(x.Exe, x.Name) == key && x.Ignored != ignored).ToArray();
+            if (variants.Length == 0) return;
+            using var transaction = _connection.BeginTransaction();
+            using var command = _connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText = "UPDATE Apps SET ignored=$ignored WHERE id=$id";
+            command.Parameters.AddWithValue("$ignored", ignored);
+            var id = command.Parameters.Add("$id", SqliteType.Integer);
+            foreach (var app in variants) { id.Value = app.Id; command.ExecuteNonQuery(); }
+            transaction.Commit();
+            foreach (var app in variants) app.Ignored = ignored;
         }
     }
 

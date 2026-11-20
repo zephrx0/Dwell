@@ -32,6 +32,7 @@ public sealed partial class AppUsageViewModel : ObservableObject
     public string CategoryLabel => Strings.Get("CategoryLabel.Text");
     public string CategoryActionLabel => Strings.Get("ChangeCategoryLabel");
     public string HistoryLabel => Strings.Get("ViewSessions");
+    public string ExcludeLabel => Strings.Get("ExcludeFromStatistics");
     public string CategoryMenuLabel => Strings.Format("CategoryMenu", CategoryNames.ElementAtOrDefault(CategoryIndex) ?? CategoryNames[4]);
     public IReadOnlyList<string> CategoryNames { get; } = Enum.GetValues<AppCategory>().Select(x => Strings.Get("Category" + x)).ToArray();
     [ObservableProperty]
@@ -114,6 +115,16 @@ public sealed partial class OverviewViewModel(TrackingService tracker, AppReposi
         await RefreshAsync();
     }
     [RelayCommand] private void ShowMore() { _visibleCount += 10; UpdateVisibleApps(); }
+
+    public async Task ExcludeAsync(AppRecord app)
+    {
+        try
+        {
+            repository.SetIgnored(ApplicationPolicy.Identity(app.Exe, app.Name), true);
+            await RefreshAsync();
+        }
+        catch (Exception ex) when (ex is Microsoft.Data.Sqlite.SqliteException or IOException) { Error = Strings.Get("StorageError"); }
+    }
 
     public async Task RefreshAsync()
     {

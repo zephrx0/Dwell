@@ -99,7 +99,11 @@
                         </Expander.Header>
                         <StackPanel Spacing="8" Padding="40,0,0,8">
                           <StackPanel Orientation="Horizontal" Spacing="32" Visibility="{Binding HasResources, Converter={StaticResource BoolVisibility}}"><StackPanel Spacing="4"><TextBlock Text="{Binding CpuLabel}" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" /><TextBlock Text="{Binding Cpu}" FontSize="20" /></StackPanel><StackPanel Spacing="4"><TextBlock Text="{Binding MemoryLabel}" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" /><TextBlock Text="{Binding Memory}" FontSize="20" /></StackPanel></StackPanel>
-                          <StackPanel Orientation="Horizontal" Spacing="8"><Button Content="{Binding HistoryLabel}" Command="{Binding ViewHistoryCommand}" /><Button Content="{Binding CategoryMenuLabel}" automation:AutomationProperties.Name="{Binding CategoryActionLabel}"><Button.Flyout><MenuFlyout><MenuFlyoutItem Text="{Binding CategoryNames[0]}" Command="{Binding SetCategoryCommand}" CommandParameter="0" /><MenuFlyoutItem Text="{Binding CategoryNames[1]}" Command="{Binding SetCategoryCommand}" CommandParameter="1" /><MenuFlyoutItem Text="{Binding CategoryNames[2]}" Command="{Binding SetCategoryCommand}" CommandParameter="2" /><MenuFlyoutItem Text="{Binding CategoryNames[3]}" Command="{Binding SetCategoryCommand}" CommandParameter="3" /><MenuFlyoutItem Text="{Binding CategoryNames[4]}" Command="{Binding SetCategoryCommand}" CommandParameter="4" /></MenuFlyout></Button.Flyout></Button></StackPanel>
+                          <views:InlineWrapPanel ColumnSpacing="8" RowSpacing="4">
+                            <Button Content="{Binding HistoryLabel}" Command="{Binding ViewHistoryCommand}" />
+                            <Button Content="{Binding CategoryMenuLabel}" automation:AutomationProperties.Name="{Binding CategoryActionLabel}"><Button.Flyout><MenuFlyout><MenuFlyoutItem Text="{Binding CategoryNames[0]}" Command="{Binding SetCategoryCommand}" CommandParameter="0" /><MenuFlyoutItem Text="{Binding CategoryNames[1]}" Command="{Binding SetCategoryCommand}" CommandParameter="1" /><MenuFlyoutItem Text="{Binding CategoryNames[2]}" Command="{Binding SetCategoryCommand}" CommandParameter="2" /><MenuFlyoutItem Text="{Binding CategoryNames[3]}" Command="{Binding SetCategoryCommand}" CommandParameter="3" /><MenuFlyoutItem Text="{Binding CategoryNames[4]}" Command="{Binding SetCategoryCommand}" CommandParameter="4" /></MenuFlyout></Button.Flyout></Button>
+                            <Button Content="{Binding ExcludeLabel}" Style="{StaticResource SubtleButtonStyle}" Click="ExcludeAppClicked" />
+                          </views:InlineWrapPanel>
                         </StackPanel>
                       </Expander>
                       <Border Height="1" Margin="56,0,16,0" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
@@ -144,6 +148,20 @@
               <StackPanel Spacing="4">
                 <ToggleSwitch x:Name="StartupSwitch" x:Uid="AutoStart" IsOn="{x:Bind Settings.AutoStart, Mode=TwoWay}" OnContent="" OffContent="" />
                 <HyperlinkButton x:Name="StartupSettingsLink" x:Uid="StartupSettingsLink" Click="OpenStartupSettings" Padding="0,4" HorizontalAlignment="Left" />
+              </StackPanel>
+              <StackPanel Spacing="4">
+                <TextBlock x:Name="ExcludedAppsHeading" FontWeight="SemiBold" />
+                <TextBlock x:Name="ExcludedAppsHint" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                <ItemsControl ItemsSource="{Binding ExcludedApps}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <views:InlineWrapPanel ColumnSpacing="12" RowSpacing="4">
+                        <TextBlock Text="{Binding Name}" VerticalAlignment="Center" TextWrapping="Wrap" />
+                        <Button Content="{Binding RestoreLabel}" Style="{StaticResource SubtleButtonStyle}" Click="RestoreAppClicked" />
+                      </views:InlineWrapPanel>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
               </StackPanel>
               <TextBlock Text="{Binding Error}" Visibility="{Binding Error, Converter={StaticResource TextVisibility}}" Foreground="{ThemeResource SystemFillColorCriticalBrush}" TextWrapping="Wrap" />
               <Button x:Name="UpdateButton" x:Uid="InstallUpdate" Click="InstallUpdateClicked" HorizontalAlignment="Left" />

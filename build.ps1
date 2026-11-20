@@ -1,11 +1,20 @@
-param([switch]$Package, [switch]$SingleFile)
+param([switch]$Package, [switch]$SingleFile, [switch]$Installer)
 $ErrorActionPreference = 'Stop'
 Set-Location -LiteralPath $PSScriptRoot
+if ($Installer) {
+    $compiler = (Get-Command ISCC.exe -CommandType Application -ErrorAction SilentlyContinue).Source
+    if (-not $compiler) {
+        $compiler = Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6\ISCC.exe'
+    }
+    if (-not (Test-Path -LiteralPath $compiler -PathType Leaf)) {
+        throw 'Inno Setup 6.3 or later is required. Install it or add ISCC.exe to PATH.'
+    }
+}
 dotnet build Dwell.slnx -c Release
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 dotnet test tests/Dwell.Core.Tests/Dwell.Core.Tests.csproj -c Release --no-build
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-if ($SingleFile) {
+if ($SingleFile -or $Installer) {
     $stage = Join-Path $PSScriptRoot ('artifacts\bundle-' + [Guid]::NewGuid().ToString('N'))
     try {
         dotnet publish src/Dwell/Dwell.csproj -c Release -o $stage -p:PublishSingleFile=true
@@ -15,6 +24,10 @@ if ($SingleFile) {
         $output = Join-Path $PSScriptRoot "artifacts\Dwell-$version-win-x64"
         New-Item -Path $output -ItemType Directory -Force | Out-Null
         Copy-Item -LiteralPath $exe.FullName -Destination (Join-Path $output 'Dwell.exe') -Force
+        if ($Installer) {
+            & $compiler "/DAppVersion=$version" "/DAppExe=$($exe.FullName)" "/O$output" (Join-Path $PSScriptRoot 'installer\Dwell.iss')
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        }
     }
     finally {
         # The staging directory belongs to this publish invocation.

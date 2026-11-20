@@ -79,12 +79,12 @@ public sealed class BackgroundTracker(AppRepository repository)
         var foreground = foregroundPath is null ? null : repository.Find(foregroundPath);
         var foregroundKey = foreground is null ? null : ApplicationPolicy.Identity(foreground.Exe, foreground.Name);
         _foregroundKey = foregroundKey;
+        var ids = paused ? [] : running.Where(x => !x.Ignored && ApplicationPolicy.Identity(x.Exe, x.Name) != foregroundKey).Select(x => x.Id).ToHashSet();
         if (!paused && _storedScanVersion != _scanVersion)
         {
-            repository.RecordResourcePeaks(Resources.SelectMany(x => x.AppIds.Select(id => (id, x.Cpu ?? 0d, x.Memory))));
+            repository.RecordResourcePeaks(Resources.Where(x => ids.Overlaps(x.AppIds)).SelectMany(x => x.AppIds.Select(id => (id, x.Cpu ?? 0d, x.Memory))));
             _storedScanVersion = _scanVersion;
         }
-        var ids = paused ? [] : running.Where(x => ApplicationPolicy.Identity(x.Exe, x.Name) != foregroundKey).Select(x => x.Id).ToHashSet();
         foreach (var id in ids)
             if (!_sessions.ContainsKey(id)) _sessions.Add(id, new SessionAccumulator());
         foreach (var (id, sessions) in _sessions) sessions.Sample(ids.Contains(id) ? id : null, now, !ids.Contains(id));

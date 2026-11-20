@@ -142,6 +142,9 @@ public sealed partial class MainWindow : Window
         IdleInput.Header = Strings.Get("IdleMinutes.Header");
         StartupSwitch.Header = Strings.Get("AutoStart.Header");
         StartupSettingsLink.Content = Strings.Get("StartupSettingsLink.Content");
+        ExcludedAppsHeading.Text = Strings.Get("ExcludedAppsHeading");
+        ExcludedAppsHint.Text = Strings.Get("ExcludedAppsHint");
+        if (SettingsScroll.Visibility == Visibility.Visible) Settings.RefreshExcludedApps();
         UpdateButton.Content = Strings.Get("InstallUpdate.Content");
         TrayOpen.Text = Strings.Get("TrayOpen.Text"); TrayExit.Text = Strings.Get("TrayExit.Text");
         HistoryPage.Localize(); LimitsPage.Localize(); UpdatePauseState();
@@ -169,6 +172,7 @@ public sealed partial class MainWindow : Window
         if (OverviewScroll.Visibility == Visibility.Visible) await Overview.RefreshAsync();
         else if (HistoryPage.Visibility == Visibility.Visible) await Activity.RefreshAsync();
         else if (LimitsPage.Visibility == Visibility.Visible) await Rules.RefreshAsync();
+        else if (SettingsScroll.Visibility == Visibility.Visible) Settings.RefreshExcludedApps();
     }
 
     private void EnsureChart()
@@ -199,6 +203,7 @@ public sealed partial class MainWindow : Window
         if (page == "overview") { EnsureChart(); await Overview.RefreshAsync(); }
         else if (page == "activity") await Activity.RefreshAsync();
         else if (page == "rules") await Rules.RefreshAsync();
+        else if (page == "settings") Settings.RefreshExcludedApps();
     }
 
     private bool IsEditing()
@@ -230,6 +235,16 @@ public sealed partial class MainWindow : Window
     }
     private void PauseClicked(object sender, RoutedEventArgs e) => _tracker.TogglePause();
     private void ShowAppHistory(string name, DateTime date, bool week) { Activity.ShowApp(name, date, week); Navigation.SelectedItem = ActivityItem; }
+
+    private async void ExcludeAppClicked(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button { DataContext: AppUsageViewModel row }) await Overview.ExcludeAsync(row.App);
+    }
+
+    private void RestoreAppClicked(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button { DataContext: ExcludedAppItem app }) Settings.RestoreApp(app);
+    }
 
     private void NotifyReminder(UsageReminder reminder) => DispatcherQueue.TryEnqueue(() =>
     {
