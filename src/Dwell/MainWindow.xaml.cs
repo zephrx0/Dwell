@@ -29,6 +29,11 @@ public sealed partial class MainWindow : Window
     private readonly NativeMethods.SubclassProc _windowProc;
     private readonly nint _hwnd;
     private readonly DispatcherTimer _refreshTimer = new() { Interval = TimeSpan.FromSeconds(15) };
+    private readonly DispatcherTimer _updateTimer = new() { Interval = TimeSpan.FromHours(6) };
+    private readonly CancellationTokenSource _updateShutdown = new();
+    private AvailableUpdate? _availableUpdate;
+    private Version? _notifiedVersion;
+    private UpdateState _updateState;
     private bool _visible;
     private bool _exiting;
     private bool _exitInProgress;
@@ -76,15 +81,14 @@ public sealed partial class MainWindow : Window
         };
         _tracker.Start(NativeMethods.IsSessionLocked());
         _reminders.Start();
-        var updateError = Path.Combine(SettingsService.DataDirectory, "update-error.txt");
-        if (File.Exists(updateError))
-        {
-            UpdateStatus.Text = Strings.Get("UpdateFailedRollback");
-            try { File.Delete(updateError); } catch (IOException) { }
-        }
+        _updateTimer.Tick += async (_, _) => await CheckForUpdatesAsync();
+        _updateTimer.Start();
         Closed += (_, _) =>
         {
             _refreshTimer.Stop(); TrayIcon.Dispose();
+            _updateTimer.Stop();
+            _updateShutdown.Cancel();
+            _updateShutdown.Dispose();
             _reminders.Reminder -= NotifyReminder;
             _tracker.PauseChanged -= PauseChanged;
             _uiSettings.ColorValuesChanged -= PersonalizationChanged;
@@ -94,6 +98,7 @@ public sealed partial class MainWindow : Window
             NativeMethods.RemoveWindowSubclass(_hwnd, _windowProc, 1);
             App.ShutdownServices();
         };
+        _ = CheckForUpdatesAsync();
     }
 
     private void ApplyTheme(int index)
@@ -145,7 +150,8 @@ public sealed partial class MainWindow : Window
         ExcludedAppsHeading.Text = Strings.Get("ExcludedAppsHeading");
         ExcludedAppsHint.Text = Strings.Get("ExcludedAppsHint");
         if (SettingsScroll.Visibility == Visibility.Visible) Settings.RefreshExcludedApps();
-        UpdateButton.Content = Strings.Get("InstallUpdate.Content");
+        UpdatesHeading.Text = Strings.Get("UpdatesHeading");
+        RenderUpdateState();
         TrayOpen.Text = Strings.Get("TrayOpen.Text"); TrayExit.Text = Strings.Get("TrayExit.Text");
         HistoryPage.Localize(); LimitsPage.Localize(); UpdatePauseState();
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(PreviousButton, Strings.Get("PreviousPeriodLabel"));
@@ -304,7 +310,7 @@ public sealed partial class MainWindow : Window
     private void TrayOpenClicked(object sender, RoutedEventArgs e) => Show();
     private async void TrayExitClicked(object sender, RoutedEventArgs e) => await ExitAsync();
 
-    private async Task<bool> ExitAsync(bool forUpdate = false)
+    private async Task<bool> ExitAsync(string? installer = null)
     {
         if (_exitInProgress) return false;
         _exitInProgress = true;
@@ -315,40 +321,98 @@ public sealed partial class MainWindow : Window
             await new ContentDialog { XamlRoot = Root.XamlRoot, Title = Strings.Get("ExitErrorTitle"), Content = Strings.Get("StorageError"), CloseButtonText = Strings.Get("Close") }.ShowAsync();
             return false;
         }
-        if (forUpdate) return true;
+        if (installer is not null)
+        {
+            try { UpdateService.Launch(installer); }
+            catch { _exitInProgress = false; throw; }
+        }
         await _tracker.StopAsync();
         _exiting = true; Close(); return true;
     }
 
-    private async void InstallUpdateClicked(object sender, RoutedEventArgs e)
+    private enum UpdateState { Ready, Checking, Current, Downloading, Installing, CheckFailed, InstallFailed }
+
+    private bool UpdateBusy => _updateState is UpdateState.Checking or UpdateState.Downloading or UpdateState.Installing;
+
+    private void SetUpdateState(UpdateState state)
     {
-        UpdateButton.IsEnabled = false;
+        _updateState = state;
+        RenderUpdateState();
+    }
+
+    private void RenderUpdateState()
+    {
+        UpdateButton.IsEnabled = !UpdateBusy;
+        UpdateButton.Content = Strings.Get(_availableUpdate is null ? "CheckForUpdates" : "InstallAvailableUpdate");
+        UpdateProgress.IsActive = UpdateBusy;
+        UpdateProgress.Visibility = UpdateBusy ? Visibility.Visible : Visibility.Collapsed;
+        UpdateStatus.Text = _updateState switch
+        {
+            UpdateState.Checking => Strings.Get("UpdateChecking"),
+            UpdateState.Current => Strings.Get("UpdateCurrent"),
+            UpdateState.Downloading => Strings.Get("UpdateDownloading"),
+            UpdateState.Installing => Strings.Get("UpdateInstalling"),
+            UpdateState.CheckFailed => Strings.Get("UpdateCheckFailed"),
+            UpdateState.InstallFailed => Strings.Get("UpdateInstallFailed"),
+            _ => _availableUpdate is { } update ? Strings.Format("UpdateAvailable", update.Version.ToString(3)) : ""
+        };
+    }
+
+    private async Task CheckForUpdatesAsync(bool manual = false)
+    {
+        if (_exiting || _exitInProgress || UpdateBusy) return;
+        SetUpdateState(UpdateState.Checking);
         try
         {
-            var picker = new FileOpenPicker();
-            InitializeWithWindow.Initialize(picker, _hwnd);
-            picker.FileTypeFilter.Add(".exe");
-            picker.FileTypeFilter.Add(".zip");
-            var file = await picker.PickSingleFileAsync();
-            if (file is null) return;
-            var prepared = await _updates.PrepareAsync(file.Path);
-            var confirm = new ContentDialog
+            var available = await _updates.CheckAsync(_updateShutdown.Token);
+            if (_exiting) return;
+            _availableUpdate = available;
+            SetUpdateState(available is null && manual ? UpdateState.Current : UpdateState.Ready);
+            if (!_exitInProgress && available is { } update && _notifiedVersion != update.Version)
             {
-                XamlRoot = Root.XamlRoot, Title = Strings.Get("UpdateDialogTitle"),
-                Content = Strings.Format("UpdateConfirmation", prepared.Version),
-                PrimaryButtonText = Strings.Get("UpdateRestart"), CloseButtonText = Strings.Get("Cancel"), DefaultButton = ContentDialogButton.Close
-            };
-            if (await confirm.ShowAsync() != ContentDialogResult.Primary) { _updates.Discard(prepared); return; }
-            if (!await ExitAsync(true)) { _updates.Discard(prepared); return; }
-            _updates.Launch(prepared);
-            await _tracker.StopAsync();
-            _exiting = true; Close();
+                _notifiedVersion = update.Version;
+                TrayIcon.ShowNotification("Dwell", Strings.Format("UpdateNotification", update.Version.ToString(3)),
+                    H.NotifyIcon.Core.NotificationIcon.Info, sound: false, respectQuietTime: true);
+            }
         }
-        catch (Exception ex) when (ex is IOException or InvalidDataException or UnauthorizedAccessException or BadImageFormatException or ArgumentException or System.Text.Json.JsonException or System.ComponentModel.Win32Exception)
+        catch (Exception ex) when (IsUpdateError(ex))
         {
-            _exitInProgress = false;
-            UpdateStatus.Text = Strings.Get("UpdateError");
+            if (!_exiting) SetUpdateState(manual ? UpdateState.CheckFailed : UpdateState.Ready);
         }
-        finally { UpdateButton.IsEnabled = true; }
     }
+
+    private async void UpdateClicked(object sender, RoutedEventArgs e)
+    {
+        if (_exiting || _exitInProgress || UpdateBusy) return;
+        if (_availableUpdate is null)
+        {
+            await CheckForUpdatesAsync(manual: true);
+            return;
+        }
+
+        SetUpdateState(UpdateState.Checking);
+        try
+        {
+            var update = await _updates.CheckAsync(_updateShutdown.Token);
+            if (_exiting) return;
+            _availableUpdate = update;
+            if (update is null)
+            {
+                SetUpdateState(UpdateState.Current);
+                return;
+            }
+            SetUpdateState(UpdateState.Downloading);
+            var installer = await _updates.DownloadAsync(update, _updateShutdown.Token);
+            if (_exiting) return;
+            SetUpdateState(UpdateState.Installing);
+            if (!await ExitAsync(installer)) SetUpdateState(UpdateState.Ready);
+        }
+        catch (Exception ex) when (IsUpdateError(ex))
+        {
+            if (!_exiting) SetUpdateState(UpdateState.InstallFailed);
+        }
+    }
+
+    private static bool IsUpdateError(Exception ex) => ex is HttpRequestException or OperationCanceledException
+        or IOException or InvalidDataException or UnauthorizedAccessException or System.Text.Json.JsonException or System.ComponentModel.Win32Exception;
 }

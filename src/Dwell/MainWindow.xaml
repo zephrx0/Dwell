@@ -164,8 +164,14 @@
                 </ItemsControl>
               </StackPanel>
               <TextBlock Text="{Binding Error}" Visibility="{Binding Error, Converter={StaticResource TextVisibility}}" Foreground="{ThemeResource SystemFillColorCriticalBrush}" TextWrapping="Wrap" />
-              <Button x:Name="UpdateButton" x:Uid="InstallUpdate" Click="InstallUpdateClicked" HorizontalAlignment="Left" />
-              <TextBlock x:Name="UpdateStatus" Visibility="{Binding Text, ElementName=UpdateStatus, Converter={StaticResource TextVisibility}}" TextWrapping="Wrap" Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
+              <StackPanel Spacing="4">
+                <TextBlock x:Name="UpdatesHeading" FontWeight="SemiBold" />
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Button x:Name="UpdateButton" Click="UpdateClicked" />
+                  <ProgressRing x:Name="UpdateProgress" Width="18" Height="18" Visibility="Collapsed" />
+                </StackPanel>
+                <TextBlock x:Name="UpdateStatus" Visibility="{Binding Text, ElementName=UpdateStatus, Converter={StaticResource TextVisibility}}" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" automation:AutomationProperties.LiveSetting="Polite" />
+              </StackPanel>
             </StackPanel>
           </ScrollViewer>
         </Grid>

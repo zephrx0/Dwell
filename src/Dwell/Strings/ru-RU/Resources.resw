@@ -129,21 +129,17 @@
   <data name="SettingsError" xml:space="preserve">
     <value>Не удалось сохранить настройки.</value>
   </data>
-  <data name="UpdateDialogTitle" xml:space="preserve">
-    <value>Обновление</value>
-  </data>
-  <data name="InstallUpdate.Content" xml:space="preserve">
-    <value>Установить обновление</value>
-  </data>
-  <data name="UpdateError" xml:space="preserve">
-    <value>Не удалось установить обновление. Выберите более новую версию Dwell и проверьте доступ к папке.</value>
-  </data>
-  <data name="UpdateConfirmation" xml:space="preserve">
-    <value>Установить Dwell {0}?</value>
-  </data>
-  <data name="UpdateRestart" xml:space="preserve">
-    <value>Установить</value>
-  </data>
+  <data name="UpdatesHeading" xml:space="preserve"><value>Обновления</value></data>
+  <data name="CheckForUpdates" xml:space="preserve"><value>Проверить обновления</value></data>
+  <data name="InstallAvailableUpdate" xml:space="preserve"><value>Установить обновление</value></data>
+  <data name="UpdateChecking" xml:space="preserve"><value>Проверяем обновления…</value></data>
+  <data name="UpdateCurrent" xml:space="preserve"><value>У вас последняя версия.</value></data>
+  <data name="UpdateAvailable" xml:space="preserve"><value>Доступна версия Dwell {0}.</value></data>
+  <data name="UpdateNotification" xml:space="preserve"><value>Доступна версия Dwell {0}. Откройте настройки, чтобы установить её.</value></data>
+  <data name="UpdateDownloading" xml:space="preserve"><value>Скачиваем обновление…</value></data>
+  <data name="UpdateInstalling" xml:space="preserve"><value>Устанавливаем обновление и перезапускаем Dwell…</value></data>
+  <data name="UpdateCheckFailed" xml:space="preserve"><value>Не удалось проверить обновления. Попробуйте ещё раз.</value></data>
+  <data name="UpdateInstallFailed" xml:space="preserve"><value>Не удалось скачать или запустить обновление. Попробуйте ещё раз.</value></data>
   <data name="Cancel" xml:space="preserve">
     <value>Отмена</value>
   </data>
@@ -152,9 +148,6 @@
   </data>
   <data name="ExitErrorTitle" xml:space="preserve">
     <value>Данные не сохранены</value>
-  </data>
-  <data name="UpdateFailedRollback" xml:space="preserve">
-    <value>Обновление отменено. Восстановлена предыдущая версия.</value>
   </data>
   <data name="ActivityTitle" xml:space="preserve">
     <value>Активность</value>

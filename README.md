@@ -12,10 +12,11 @@ Dwell учитывает экранное время и фоновую акти�
 - Исключение приложений из статистики через обзор и возврат через настройки.
 - Дневные лимиты, расписание отдыха и напоминания о перерывах.
 - Тихий автозапуск в трей, системная тема и русский интерфейс.
+- Фоновая проверка обновлений, уведомления Windows и установка из настроек.
 
 ### Запуск
 
-Скачай [Dwell-Setup.exe](https://github.com/zephrx0/Dwell/releases/latest/download/Dwell-Setup.exe) для установки или [Dwell.exe](https://github.com/zephrx0/Dwell/releases/latest/download/Dwell.exe) для запуска без установки. Требуется Windows 10 1809+ или Windows 11 x64. .NET уже включён.
+Скачай и запусти [Dwell-Setup.exe](https://github.com/zephrx0/Dwell/releases/latest/download/Dwell-Setup.exe). Требуется Windows 10 1809+ или Windows 11 x64. .NET уже включён. Следующие версии можно установить в разделе «Настройки → Обновления».
 
 ## English
 
@@ -25,21 +26,20 @@ Dwell tracks screen time and background app activity on Windows. All usage data 
 - Exclude apps from statistics in Overview and restore them in Settings.
 - Daily limits, downtime schedules, and break reminders.
 - Quiet startup in the system tray, system theme, and English UI.
+- Background update checks, Windows notifications, and installation from Settings.
 
 ### Run
 
-Download [Dwell-Setup.exe](https://github.com/zephrx0/Dwell/releases/latest/download/Dwell-Setup.exe) to install Dwell or [Dwell.exe](https://github.com/zephrx0/Dwell/releases/latest/download/Dwell.exe) to run it without installation. Both require Windows 10 1809+ or Windows 11 x64 and include the .NET runtime.
+Download and run [Dwell-Setup.exe](https://github.com/zephrx0/Dwell/releases/latest/download/Dwell-Setup.exe) on Windows 10 1809+ or Windows 11 x64. The .NET runtime is included. Install later versions in Settings → Updates.
 
 ## Build
 
-.NET 10 SDK · C# · WinUI 3 · SQLite
+.NET 10 SDK · C# · WinUI 3 · SQLite · Inno Setup 6.3+
 
 ```powershell
-dotnet build
-dotnet test tests/Dwell.Core.Tests
-powershell -NoProfile -ExecutionPolicy Bypass -File build.ps1 -SingleFile
+powershell -NoProfile -ExecutionPolicy Bypass -File build.ps1
 ```
 
-Run `build.ps1 -Installer` with Inno Setup 6.3 or later to build both Windows executables.
+The script builds and tests Dwell and creates `Dwell-Setup.exe` in the versioned `artifacts` directory.
 
 Developer · [zephrx0](https://github.com/zephrx0)

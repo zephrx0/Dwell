@@ -1,110 +1,111 @@
 using System.Diagnostics;
-using System.IO.Compression;
-using System.Reflection;
+using System.Net;
+using System.Net.Http.Json;
 using System.Security.Cryptography;
-using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Dwell.Services;
 
-public sealed record UpdateManifest(string Product, string Version, string Runtime, Dictionary<string, string> Files);
-public sealed record PreparedUpdate(string Directory, string Version);
+internal sealed record AvailableUpdate(Version Version, Uri DownloadUri, long Size, string Sha256);
 
 public sealed class UpdateService
 {
-    private static readonly string UpdateRoot = Path.Combine(SettingsService.DataDirectory, "updates");
-    private static readonly string[] RequiredFiles = ["Dwell.exe", "Dwell.dll", "Dwell.deps.json", "Dwell.runtimeconfig.json", "Dwell.pri", "App.xbf", "MainWindow.xbf", "Views/UsageChart.xbf", "Assets/Dwell.ico", "Update.ps1"];
+    private const string LatestRelease = "https://api.github.com/repos/zephrx0/Dwell/releases/latest";
+    private const string InstallerName = "Dwell-Setup.exe";
+    private const long MaxInstallerSize = 256L * 1024 * 1024;
+    private static readonly HttpClient Client = new() { DefaultRequestHeaders = { UserAgent = { new("Dwell") } } };
+    private readonly HttpClient _client;
+    private readonly Version _currentVersion;
+    private readonly string _directory;
 
-    private static Version CurrentVersion => Assembly.GetExecutingAssembly().GetName().Version!;
-    private static string InstallDirectory => Path.GetDirectoryName(Environment.ProcessPath)!;
+    public UpdateService() : this(Client, typeof(UpdateService).Assembly.GetName().Version!,
+        Path.Combine(SettingsService.DataDirectory, "updates")) { }
 
-    public Task<PreparedUpdate> PrepareAsync(string path) => Task.Run(() =>
+    internal UpdateService(HttpClient client, Version currentVersion, string directory)
     {
-        var probe = Path.Combine(InstallDirectory, ".dwell-" + Guid.NewGuid().ToString("N"));
-        using (File.Create(probe)) { }
-        File.Delete(probe);
-        var directory = Path.Combine(UpdateRoot, Guid.NewGuid().ToString("N"));
-        var stage = Path.Combine(directory, "stage");
-        Directory.CreateDirectory(stage);
+        _client = client;
+        _currentVersion = currentVersion;
+        _directory = directory;
+    }
+
+    internal async Task<AvailableUpdate?> CheckAsync(CancellationToken cancellationToken)
+    {
+        using var check = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        check.CancelAfter(TimeSpan.FromSeconds(15));
+        using var response = await _client.GetAsync(LatestRelease, check.Token).ConfigureAwait(false);
+        if (response.StatusCode == HttpStatusCode.NotFound) return null;
+        response.EnsureSuccessStatusCode();
+        var release = await response.Content.ReadFromJsonAsync<Release>(cancellationToken: check.Token).ConfigureAwait(false);
+        if (release is null || release.Draft || release.Prerelease ||
+            release.Tag is not { } tag || !tag.StartsWith('v') ||
+            !Version.TryParse(tag.AsSpan(1), out var version) || version.Build < 0 || version.Revision >= 0 ||
+            tag != "v" + version) return null;
+
+        var fileVersion = new Version(version.Major, version.Minor, version.Build, 0);
+        if (fileVersion <= _currentVersion) return null;
+        var asset = release.Assets?.FirstOrDefault(x => x.Name == InstallerName && x.State == "uploaded");
+        if (asset is null) return null;
+        if (asset.Size is <= 0 or > MaxInstallerSize ||
+            asset.Digest is not { Length: 71 } digest || !digest.StartsWith("sha256:", StringComparison.Ordinal) ||
+            !digest[7..].All(Uri.IsHexDigit)) throw new InvalidDataException("Invalid installer metadata.");
+
+        var uri = new Uri($"https://github.com/zephrx0/Dwell/releases/download/{tag}/{InstallerName}");
+        return new(fileVersion, uri, asset.Size, digest[7..]);
+    }
+
+    internal async Task<string> DownloadAsync(AvailableUpdate update, CancellationToken cancellationToken)
+    {
+        using var download = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        download.CancelAfter(TimeSpan.FromMinutes(15));
+        var token = download.Token;
+        Directory.CreateDirectory(_directory);
+        var target = Path.Combine(_directory, InstallerName);
+        var temporary = target + ".download";
         try
         {
-            var (version, files) = Path.GetExtension(path).Equals(".exe", StringComparison.OrdinalIgnoreCase)
-                ? StageExecutable(path, stage)
-                : StageArchive(path, stage);
-            File.WriteAllText(Path.Combine(directory, "request.json"), JsonSerializer.Serialize(new
+            using var response = await _client.GetAsync(update.DownloadUri, HttpCompletionOption.ResponseHeadersRead, token).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            using var source = await response.Content.ReadAsStreamAsync(token).ConfigureAwait(false);
+            using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+            await using (var destination = new FileStream(temporary, FileMode.Create, FileAccess.Write, FileShare.None, 81920, useAsync: true))
             {
-                ParentId = Environment.ProcessId, Target = InstallDirectory, Stage = stage,
-                Files = files, FailureText = Strings.Get("UpdateFailedRollback")
-            }));
-            File.Copy(Path.Combine(AppContext.BaseDirectory, "Update.ps1"), Path.Combine(directory, "apply.ps1"));
-            return new PreparedUpdate(directory, version);
+                var buffer = new byte[81920];
+                var remaining = update.Size;
+                while (true)
+                {
+                    var count = await source.ReadAsync(buffer, token).ConfigureAwait(false);
+                    if (count == 0) break;
+                    remaining -= count;
+                    if (remaining < 0) throw new InvalidDataException("The installer is larger than expected.");
+                    hash.AppendData(buffer, 0, count);
+                    await destination.WriteAsync(buffer.AsMemory(0, count), token).ConfigureAwait(false);
+                }
+                if (remaining != 0 || !Convert.ToHexString(hash.GetHashAndReset()).Equals(update.Sha256, StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidDataException("The installer size or checksum does not match the release.");
+            }
+            var installer = FileVersionInfo.GetVersionInfo(temporary);
+            if (installer.ProductName?.TrimEnd() != "Dwell" || !Version.TryParse(installer.FileVersion, out var version) || version != update.Version)
+                throw new InvalidDataException("The installer version does not match the release.");
+
+            File.Move(temporary, target, overwrite: true);
+            return target;
         }
-        catch { Directory.Delete(directory, true); throw; }
-    });
-
-    private static (string Version, string[] Files) StageExecutable(string path, string stage)
-    {
-        const string executable = "Dwell.exe";
-        var target = Path.Combine(stage, executable);
-        File.Copy(path, target);
-        var info = FileVersionInfo.GetVersionInfo(target);
-        if (info.ProductName != "Dwell" || info.FileDescription != "Dwell Portable" ||
-            !Version.TryParse(info.FileVersion, out var version) || version <= CurrentVersion)
-            throw new InvalidDataException();
-        return (version.ToString(), [executable]);
-    }
-
-    private static (string Version, string[] Files) StageArchive(string zipPath, string stage)
-    {
-        using var archive = ZipFile.OpenRead(zipPath);
-        var manifestEntry = archive.GetEntry("dwell-update.json") ?? throw new InvalidDataException();
-        if (manifestEntry.Length > 1024 * 1024 || archive.Entries.Count > 10000 || archive.Entries.Sum(x => x.Length) > 1024L * 1024 * 1024)
-            throw new InvalidDataException();
-        using var stream = manifestEntry.Open();
-        var manifest = JsonSerializer.Deserialize<UpdateManifest>(stream) ?? throw new InvalidDataException();
-        if (manifest.Product != "Dwell" || manifest.Runtime != "win-x64" || manifest.Files is null ||
-            !Version.TryParse(manifest.Version, out var version) || version <= CurrentVersion ||
-            RequiredFiles.Any(file => !manifest.Files.ContainsKey(file))) throw new InvalidDataException();
-
-        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var entry in archive.Entries)
+        finally
         {
-            var name = entry.FullName.Replace('\\', '/');
-            if (name == "dwell-update.json") continue;
-            if (!manifest.Files.TryGetValue(name, out var hash) || !seen.Add(name)) throw new InvalidDataException();
-            var destination = SafePath(stage, name);
-            Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
-            entry.ExtractToFile(destination);
-            using var file = File.OpenRead(destination);
-            if (!Convert.ToHexString(SHA256.HashData(file)).Equals(hash, StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException();
+            try { File.Delete(temporary); }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
         }
-        if (seen.Count != manifest.Files.Count) throw new InvalidDataException();
-        var assembly = AssemblyName.GetAssemblyName(Path.Combine(stage, "Dwell.dll"));
-        if (assembly.Name != "Dwell" || assembly.Version != version) throw new InvalidDataException();
-        return (manifest.Version, seen.ToArray());
     }
 
-    private static string SafePath(string root, string entry)
+    internal static void Launch(string installer)
     {
-        if (string.IsNullOrEmpty(entry) || entry.Contains(':') || entry.Contains('\\') || entry.Split('/').Any(x => x is ".." or "." or "")) throw new InvalidDataException();
-        var resolved = Path.GetFullPath(Path.Combine(root, entry));
-        if (!resolved.StartsWith(Path.GetFullPath(root) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException();
-        return resolved;
+        var start = new ProcessStartInfo { FileName = installer, UseShellExecute = false };
+        start.ArgumentList.Add("/SILENT");
+        start.ArgumentList.Add("/NORESTART");
+        start.ArgumentList.Add($"/DwellUpdatePID={Environment.ProcessId}");
+        using var process = Process.Start(start) ?? throw new IOException("The installer did not start.");
     }
 
-    public void Launch(PreparedUpdate update)
-    {
-        var start = new ProcessStartInfo
-        {
-            FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), @"WindowsPowerShell\v1.0\powershell.exe"),
-            UseShellExecute = false, CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden
-        };
-        foreach (var argument in new[] { "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-WindowStyle", "Hidden", "-File", Path.Combine(update.Directory, "apply.ps1"), "-Request", Path.Combine(update.Directory, "request.json") }) start.ArgumentList.Add(argument);
-        using var process = Process.Start(start) ?? throw new IOException();
-    }
-
-    public void Discard(PreparedUpdate update)
-    {
-        var resolved = Path.GetFullPath(update.Directory);
-        if (resolved.StartsWith(Path.GetFullPath(UpdateRoot) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) Directory.Delete(resolved, true);
-    }
+    private sealed record Release([property: JsonPropertyName("tag_name")] string? Tag, bool Draft, bool Prerelease, Asset[]? Assets);
+    private sealed record Asset(string Name, string State, long Size, string? Digest);
 }

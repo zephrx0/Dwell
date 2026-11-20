@@ -129,21 +129,17 @@
   <data name="SettingsError" xml:space="preserve">
     <value>Could not save settings.</value>
   </data>
-  <data name="UpdateDialogTitle" xml:space="preserve">
-    <value>Update</value>
-  </data>
-  <data name="InstallUpdate.Content" xml:space="preserve">
-    <value>Install update</value>
-  </data>
-  <data name="UpdateError" xml:space="preserve">
-    <value>Could not install the update. Choose a later version of Dwell and check folder access.</value>
-  </data>
-  <data name="UpdateConfirmation" xml:space="preserve">
-    <value>Install Dwell {0}?</value>
-  </data>
-  <data name="UpdateRestart" xml:space="preserve">
-    <value>Install</value>
-  </data>
+  <data name="UpdatesHeading" xml:space="preserve"><value>Updates</value></data>
+  <data name="CheckForUpdates" xml:space="preserve"><value>Check for updates</value></data>
+  <data name="InstallAvailableUpdate" xml:space="preserve"><value>Install update</value></data>
+  <data name="UpdateChecking" xml:space="preserve"><value>Checking for updates…</value></data>
+  <data name="UpdateCurrent" xml:space="preserve"><value>You have the latest version.</value></data>
+  <data name="UpdateAvailable" xml:space="preserve"><value>Dwell {0} is available.</value></data>
+  <data name="UpdateNotification" xml:space="preserve"><value>Dwell {0} is available. Open Settings to install it.</value></data>
+  <data name="UpdateDownloading" xml:space="preserve"><value>Downloading the update…</value></data>
+  <data name="UpdateInstalling" xml:space="preserve"><value>Installing the update and restarting Dwell…</value></data>
+  <data name="UpdateCheckFailed" xml:space="preserve"><value>Could not check for updates. Try again.</value></data>
+  <data name="UpdateInstallFailed" xml:space="preserve"><value>Could not download or start the update. Try again.</value></data>
   <data name="Cancel" xml:space="preserve">
     <value>Cancel</value>
   </data>
@@ -152,9 +148,6 @@
   </data>
   <data name="ExitErrorTitle" xml:space="preserve">
     <value>Data not saved</value>
-  </data>
-  <data name="UpdateFailedRollback" xml:space="preserve">
-    <value>Update failed. The previous version was restored.</value>
   </data>
   <data name="ActivityTitle" xml:space="preserve">
     <value>Activity</value>

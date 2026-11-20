@@ -13,6 +13,8 @@ SetupIconFile=..\src\Dwell\Assets\Dwell.ico
 UninstallDisplayIcon={app}\Dwell.exe
 OutputBaseFilename=Dwell-Setup
 VersionInfoVersion={#AppVersion}
+VersionInfoProductName=Dwell
+VersionInfoDescription=Dwell Setup
 WizardStyle=modern
 Compression=zip
 RestartApplications=no
@@ -22,17 +24,60 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "russian"; MessagesFile: "compiler:Languages\Russian.isl"
 
 [Files]
-Source: "{#AppExe}"; DestDir: "{app}"
+Source: "{#AppSource}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
 
 [Icons]
 Name: "{userprograms}\Dwell"; Filename: "{app}\Dwell.exe"; WorkingDir: "{app}"
 
 [Run]
 Filename: "{app}\Dwell.exe"; Description: "{cm:LaunchProgram,Dwell}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\Dwell.exe"; Flags: nowait skipifnotsilent; Check: IsDwellUpdate
+
+[CustomMessages]
+english.DwellWaitError=Dwell is still running. Exit Dwell from the system tray and run Setup again.
+russian.DwellWaitError=Приложение Dwell ещё работает. Закройте его через значок в области уведомлений и запустите установщик снова.
 
 [Code]
 const
   RunKey = 'Software\Microsoft\Windows\CurrentVersion\Run';
+
+function OpenProcessForWait(Access: Cardinal; Inherit: Boolean; ProcessId: Cardinal): THandle;
+  external 'OpenProcess@kernel32.dll stdcall';
+function WaitForProcessExit(ProcessHandle: THandle; Milliseconds: Cardinal): Cardinal;
+  external 'WaitForSingleObject@kernel32.dll stdcall';
+function CloseProcessHandle(ProcessHandle: THandle): Boolean;
+  external 'CloseHandle@kernel32.dll stdcall';
+
+function UpdateProcessId: Integer;
+begin
+  Result := StrToIntDef(ExpandConstant('{param:DwellUpdatePID|0}'), 0);
+end;
+
+function IsDwellUpdate: Boolean;
+begin
+  Result := UpdateProcessId > 0;
+end;
+
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+var
+  ProcessHandle: THandle;
+begin
+  Result := '';
+  if not IsDwellUpdate then
+  begin
+    if (not WizardSilent) and (FindWindowByWindowName('Dwell') <> 0) then
+      Result := CustomMessage('DwellWaitError');
+    exit;
+  end;
+  ProcessHandle := OpenProcessForWait($00100000, False, UpdateProcessId);
+  if ProcessHandle = 0 then exit;
+  try
+    if WaitForProcessExit(ProcessHandle, 30000) <> 0 then
+      Result := CustomMessage('DwellWaitError');
+  finally
+    CloseProcessHandle(ProcessHandle);
+  end;
+end;
 
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 var

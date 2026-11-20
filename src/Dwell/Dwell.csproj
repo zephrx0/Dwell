@@ -12,16 +12,10 @@
     <SelfContained>true</SelfContained>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets/Dwell.ico</ApplicationIcon>
-    <Version>0.5.0</Version>
+    <Version>0.5.1</Version>
     <DefaultLanguage>ru-RU</DefaultLanguage>
     <PublishTrimmed>false</PublishTrimmed>
     <DebugType>embedded</DebugType>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(PublishSingleFile)' == 'true'">
-    <AssemblyTitle>Dwell Portable</AssemblyTitle>
-    <EnableMsixTooling>true</EnableMsixTooling>
-    <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
-    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Dwell.Core/Dwell.Core.csproj" />
@@ -36,9 +30,8 @@
     <PackageReference Include="H.NotifyIcon.WinUI" Version="2.4.1" />
     <Content Update="Assets/Dwell.ico" CopyToOutputDirectory="PreserveNewest" />
     <Content Update="Assets/Dwell.png" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="Update.ps1" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
-  <Target Name="IncludeWinUIResourcesInPublish" BeforeTargets="ComputeFilesToPublish" Condition="'$(PublishSingleFile)' != 'true'">
+  <Target Name="IncludeWinUIResourcesInPublish" BeforeTargets="ComputeFilesToPublish">
     <ItemGroup>
       <ResolvedFileToPublish Include="$(TargetDir)$(AssemblyName).pri">
         <RelativePath>$(AssemblyName).pri</RelativePath>
