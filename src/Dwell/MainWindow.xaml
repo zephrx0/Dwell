@@ -19,7 +19,7 @@
         </VisualStateGroup>
       </VisualStateManager.VisualStateGroups>
       <Grid x:Name="FallbackSurface" Background="{ThemeResource SolidBackgroundFillColorBaseBrush}" />
-      <NavigationView x:Name="Navigation" IsBackButtonVisible="Collapsed" IsSettingsVisible="False" PaneDisplayMode="Auto" OpenPaneLength="184" CompactModeThresholdWidth="0" ExpandedModeThresholdWidth="980" SelectionChanged="NavigationChanged">
+      <NavigationView x:Name="Navigation" IsBackButtonVisible="Collapsed" IsSettingsVisible="False" PaneDisplayMode="Auto" OpenPaneLength="224" CompactModeThresholdWidth="0" ExpandedModeThresholdWidth="980" SelectionChanged="NavigationChanged">
         <NavigationView.MenuItems>
           <NavigationViewItem x:Name="OverviewItem" x:Uid="OverviewNav" Tag="overview" Icon="ViewAll" IsSelected="True" />
           <NavigationViewItem x:Name="ActivityItem" Tag="activity" Icon="Clock" />
