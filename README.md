@@ -1,45 +1,43 @@
 # Dwell
 
-[Русский](#русский) · [English](#english) · [Releases](https://github.com/zephrx0/Dwell/releases)
+[English](#english)
+
+Dwell показывает, на что уходит время за компьютером. В обзоре видно, сколько времени ты провёл в каждом приложении и сколько оно работало в фоне. На графике можно посмотреть день или неделю и увидеть, сколько времени заняла каждая категория. Историю можно выгрузить в CSV.
 
 <img src="docs/images/dwell.png" alt="Обзор экранного времени в Dwell" width="600">
 
-## Русский
+## Установка
 
-Dwell учитывает экранное время и фоновую активность приложений на Windows. Статистика хранится локально. Приложение работает офлайн и не собирает телеметрию.
+Скачай и запусти установщик. Подойдёт Windows 10 версии 1809 или новее, а также Windows 11. Установщик рассчитан на x64 и уже включает .NET. [Скачать Dwell-Setup.exe](https://github.com/zephrx0/Dwell/releases/latest/download/Dwell-Setup.exe)
 
-- Графики по дням и неделям, категории и история с экспортом в CSV.
-- Исключение приложений из статистики через обзор и возврат в разделе «Скрытые приложения».
-- Дневные лимиты, расписание отдыха и напоминания о перерывах.
-- Тихий автозапуск в трей, системная тема и русский интерфейс.
-- Фоновая проверка обновлений, уведомления Windows и установка из настроек.
+Когда выйдет новая версия, Dwell покажет уведомление Windows. Установить обновление можно в разделе «Настройки → Обновления». [История релизов](https://github.com/zephrx0/Dwell/releases)
 
-### Запуск
+## Как пользоваться
 
-Скачай и запусти [Dwell-Setup.exe](https://github.com/zephrx0/Dwell/releases/latest/download/Dwell-Setup.exe). Требуется Windows 10 1809+ или Windows 11 x64. .NET уже включён. Следующие версии можно установить в разделе «Настройки → Обновления».
+Если в статистику попала фоновая служба, раскрой её строку в обзоре и нажми «Исключить из статистики». Чтобы вернуть приложение вместе с его историей, открой «Скрытые приложения» в боковом меню и нажми «Вернуть в статистику».
+
+В разделе «Лимиты и отдых» можно задать дневной лимит, настроить расписание отдыха или включить напоминания о перерывах. Тему, язык и автозапуск в трее можно поменять в настройках.
+
+История и настройки хранятся на твоём компьютере. Статистика работает офлайн.
 
 ## English
 
-Dwell tracks screen time and background app activity on Windows. All usage data stays on your PC. Dwell works offline and collects no telemetry.
+Dwell shows where your time goes on Windows. Pick a day or a week in Overview to see how long each app was on screen or running in the background, and how your time breaks down by category. You can also export your history as a CSV.
 
-- Daily and weekly charts, categories, and usage history with CSV export.
-- Exclude apps from statistics in Overview and restore them in Hidden apps.
-- Daily limits, downtime schedules, and break reminders.
-- Quiet startup in the system tray, system theme, and English UI.
-- Background update checks, Windows notifications, and installation from Settings.
+If a background service is cluttering up your stats, expand its row in Overview and select **Exclude from statistics**. To bring it back with its history, open **Hidden apps** in the sidebar and select **Restore to statistics**.
 
-### Run
+**Limits and breaks** is where you can set daily limits, schedule downtime, and turn on break reminders. Theme, language, and startup in the system tray are in Settings. Your history and settings stay on your PC, and tracking works offline.
 
-Download and run [Dwell-Setup.exe](https://github.com/zephrx0/Dwell/releases/latest/download/Dwell-Setup.exe) on Windows 10 1809+ or Windows 11 x64. The .NET runtime is included. Install later versions in Settings → Updates.
+Run the installer on an x64 PC with Windows 10 version 1809 or later, or Windows 11. The .NET runtime is included. Dwell sends a Windows notification when an update is available. You can install it from **Settings → Updates**. [Download Dwell-Setup.exe](https://github.com/zephrx0/Dwell/releases/latest/download/Dwell-Setup.exe)
 
 ## Build
 
-.NET 10 SDK · C# · WinUI 3 · SQLite · Inno Setup 6.3+
+Dwell uses C#, WinUI 3, and SQLite. To build the installer, run this from the repository root on Windows with the .NET 10 SDK and Inno Setup 6.3 or newer installed.
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File build.ps1
 ```
 
-The script builds and tests Dwell and creates `Dwell-Setup.exe` in the versioned `artifacts` directory.
+The script builds Dwell, runs the tests, and puts `Dwell-Setup.exe` in a versioned folder under `artifacts`.
 
-Developer · [zephrx0](https://github.com/zephrx0)
+Made by [zephrx0](https://github.com/zephrx0).
