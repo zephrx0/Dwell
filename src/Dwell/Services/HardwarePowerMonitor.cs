@@ -13,6 +13,7 @@ internal sealed record HardwarePowerSample(PowerTotal Total, IReadOnlyList<Power
 internal sealed class HardwarePowerMonitor : IDisposable
 {
     private readonly object _gate = new();
+    private readonly WindowsEnergyMeters _energyMeters = new();
     private Computer? _computer;
     private (int Index, string Name)[]? _disks;
     private long _retryAt;
@@ -25,15 +26,19 @@ internal sealed class HardwarePowerMonitor : IDisposable
             if (_disposed) return new(PowerTotal.Unavailable, [], null);
             var devices = new List<PowerDevice>();
             var storageIndices = new HashSet<int>();
+            var cpuIndices = new Dictionary<int, int>();
             if (OpenComputer() is { } computer)
             {
                 foreach (var hardware in computer.Hardware)
                 {
+                    if (hardware.HardwareType == HardwareType.Cpu && int.TryParse(hardware.Identifier.ToString().Split('/')[^1], out var cpuIndex))
+                        cpuIndices.TryAdd(cpuIndex, devices.Count);
                     ReadDevice(hardware, devices, includeWithoutSensors: true);
                     if (hardware is StorageDevice storage) storageIndices.Add(storage.Storage.DriveNumber);
                 }
             }
 
+            AddWindowsReadings(devices, cpuIndices, _energyMeters.Read());
             _disks ??= ReadDisks();
             devices.AddRange(_disks.Where(x => !storageIndices.Contains(x.Index))
                 .Select(x => new PowerDevice(x.Name, PowerDeviceKind.Independent, [])));
@@ -76,7 +81,8 @@ internal sealed class HardwarePowerMonitor : IDisposable
             HardwareType.GpuAmd => PowerDeviceKind.AmdGpu,
             HardwareType.GpuNvidia or HardwareType.GpuIntel => PowerDeviceKind.Gpu,
             HardwareType.Psu => PowerDeviceKind.Supply,
-            HardwareType.Storage or HardwareType.Memory or HardwareType.Cooler => PowerDeviceKind.Independent,
+            HardwareType.Memory => PowerDeviceKind.Memory,
+            HardwareType.Storage or HardwareType.Cooler => PowerDeviceKind.Independent,
             _ => PowerDeviceKind.Other
         };
 
@@ -94,6 +100,61 @@ internal sealed class HardwarePowerMonitor : IDisposable
             devices.Add(new(hardware.Name, kind, sensors));
         foreach (var child in hardware.SubHardware)
             ReadDevice(child, devices, includeWithoutSensors: false);
+    }
+
+    private static void AddWindowsReadings(List<PowerDevice> devices, Dictionary<int, int> cpuIndices, List<EnergyChannel> readings)
+    {
+        var cpuReadings = new Dictionary<int, List<PowerSensor>>();
+        foreach (var reading in readings.OrderByDescending(x => x.Watts.HasValue))
+        {
+            var parts = reading.Name.Split('_');
+            if (parts is not ["RAPL", var packageName, var domain] ||
+                !packageName.StartsWith("Package", StringComparison.Ordinal) ||
+                !int.TryParse(packageName.AsSpan(7), out var package))
+            {
+                devices.Add(new(reading.Device.Length > 0 ? reading.Device : "EMI", PowerDeviceKind.Other,
+                    [new(reading.Id, reading.Name, reading.Watts)]));
+                continue;
+            }
+
+            if (domain == "DRAM")
+            {
+                var memoryName = $"DRAM ({packageName})";
+                if (!devices.Any(x => x.Kind == PowerDeviceKind.RaplMemory && x.Name == memoryName))
+                    devices.Add(new(memoryName, PowerDeviceKind.RaplMemory, [new(reading.Id, "RAPL DRAM", reading.Watts)]));
+                continue;
+            }
+
+            var name = domain switch
+            {
+                "PKG" => "CPU Package",
+                "PP0" => "CPU Cores",
+                "PP1" => "CPU Graphics",
+                "PSYS" => "CPU Platform",
+                _ => reading.Name
+            };
+            if (!cpuReadings.TryGetValue(package, out var sensors)) cpuReadings[package] = sensors = [];
+            if (!sensors.Any(x => x.Name == name)) sensors.Add(new(reading.Id, name, reading.Watts));
+        }
+
+        foreach (var (package, readingsForCpu) in cpuReadings)
+        {
+            if (!cpuIndices.TryGetValue(package, out var index))
+            {
+                devices.Add(new($"CPU {package + 1}", PowerDeviceKind.Cpu, readingsForCpu.ToArray()));
+                continue;
+            }
+
+            var device = devices[index];
+            var sensors = device.Sensors.ToList();
+            foreach (var reading in readingsForCpu)
+            {
+                var existing = sensors.FindIndex(x => x.Name == reading.Name || x.Name == "Package" && reading.Name == "CPU Package");
+                if (existing < 0) sensors.Add(reading);
+                else if (sensors[existing].Watts is null) sensors[existing] = reading;
+            }
+            devices[index] = device with { Sensors = sensors.ToArray() };
+        }
     }
 
     private static double? SensorWatts(float? value, bool isCpu) =>
@@ -142,6 +203,7 @@ internal sealed class HardwarePowerMonitor : IDisposable
         lock (_gate)
         {
             _disposed = true;
+            _energyMeters.Dispose();
             if (_computer is not null) CloseComputer(_computer);
             _computer = null;
         }

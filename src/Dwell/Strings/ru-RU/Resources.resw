@@ -327,6 +327,8 @@
   <data name="PowerYes" xml:space="preserve"><value>Да</value></data>
   <data name="PowerNow" xml:space="preserve"><value>Сейчас</value></data>
   <data name="PowerWindow" xml:space="preserve"><value>Последние 5 минут</value></data>
+  <data name="PowerChartSource" xml:space="preserve"><value>На графике</value></data>
+  <data name="PowerChartTotal" xml:space="preserve"><value>Общая мощность</value></data>
   <data name="PowerSourceNone" xml:space="preserve"><value>Потребление ПК</value></data>
   <data name="PowerSourceComponents" xml:space="preserve"><value>Сумма доступных показаний компонентов</value></data>
   <data name="PowerSourceSupplyOutput" xml:space="preserve"><value>Потребление ПК по выходу блока питания</value></data>

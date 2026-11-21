@@ -37,6 +37,22 @@ public sealed class PowerTotalsTests
     }
 
     [Fact]
+    public void RaplDramAndCpuPackageAreCountedOnceAlongsideTheDiscreteGpu()
+    {
+        var devices = new PowerDevice[]
+        {
+            new("CPU", PowerDeviceKind.Cpu, [new("package", "CPU Package", 16), new("cores", "CPU Cores", 9)]),
+            new("DRAM", PowerDeviceKind.RaplMemory, [new("dram", "RAPL DRAM", 2)]),
+            new("DIMM", PowerDeviceKind.Memory, [new("dimm", "Power", 1)]),
+            new("GPU", PowerDeviceKind.Gpu, [new("gpu", "GPU Package", 8)])
+        };
+
+        var total = PowerTotals.Calculate(devices, null);
+        Assert.Equal(26, total.Watts);
+        Assert.Equal(["dram", "gpu", "package"], total.SensorIds);
+    }
+
+    [Fact]
     public void BatteryDischargeTakesPrecedenceOverAnIncompleteSupply()
     {
         var devices = new PowerDevice[]

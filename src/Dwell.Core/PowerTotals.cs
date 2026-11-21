@@ -1,6 +1,6 @@
 namespace Dwell.Core;
 
-public enum PowerDeviceKind { Other, Cpu, AmdCpu, Gpu, AmdGpu, IntegratedGpu, Independent, Supply }
+public enum PowerDeviceKind { Other, Cpu, AmdCpu, Gpu, AmdGpu, IntegratedGpu, Independent, Memory, RaplMemory, Supply }
 public enum PowerSource { None, Components, SupplyOutput, Battery }
 
 public sealed record PowerSensor(string Id, string Name, double? Watts);
@@ -26,13 +26,14 @@ public static class PowerTotals
             .Select(x => (x.Kind, Sensor: Find(x, "CPU Package", "Package", "CPU Cores"))).ToArray();
         var includesCpuPackage = cpu.Any(x => x.Sensor is { Name: "CPU Package" or "Package" });
         var includesAmdPackage = cpu.Any(x => x.Kind == PowerDeviceKind.AmdCpu && x.Sensor is { Name: "CPU Package" or "Package" });
+        var includesRaplMemory = devices.Any(x => x.Kind == PowerDeviceKind.RaplMemory && x.Sensors.Any(Available));
         var components = devices.Select(x => x.Kind switch
         {
             PowerDeviceKind.Gpu => FindGpu(x),
             PowerDeviceKind.AmdGpu when !includesAmdPackage => FindGpu(x),
             PowerDeviceKind.IntegratedGpu when !includesCpuPackage => FindGpu(x),
-            PowerDeviceKind.Independent => Find(x, "Total Power", "Power Consumption", "Power") ??
-                (x.Sensors is [var only] && Available(only) ? only : null),
+            PowerDeviceKind.Independent or PowerDeviceKind.RaplMemory => FindIndependent(x),
+            PowerDeviceKind.Memory when !includesRaplMemory => FindIndependent(x),
             _ => null
         });
         return Sum(PowerSource.Components, cpu.Select(x => x.Sensor).Concat(components).OfType<PowerSensor>());
@@ -40,6 +41,10 @@ public static class PowerTotals
 
     private static PowerSensor? FindGpu(PowerDevice device) =>
         Find(device, "GPU Total", "GPU Board Power", "GPU Package", "GPU PPT", "GPU Power", "GPU Core");
+
+    private static PowerSensor? FindIndependent(PowerDevice device) =>
+        Find(device, "Total Power", "Power Consumption", "Power") ??
+        (device.Sensors is [var only] && Available(only) ? only : null);
 
     private static PowerSensor? Find(PowerDevice device, params string[] sensorNames)
     {
