@@ -12,7 +12,7 @@
     <SelfContained>true</SelfContained>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets/Dwell.ico</ApplicationIcon>
-    <Version>0.5.3</Version>
+    <Version>0.6.0</Version>
     <DefaultLanguage>ru-RU</DefaultLanguage>
     <PublishTrimmed>false</PublishTrimmed>
     <DebugType>embedded</DebugType>
@@ -26,10 +26,15 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.15" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.15" />
     <PackageReference Include="LiveChartsCore.SkiaSharpView.WinUI" Version="2.0.5" />
+    <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.6" />
+    <PackageReference Include="HidSharp" Version="2.6.4" GeneratePathProperty="true" />
     <PackageReference Include="System.Diagnostics.EventLog" Version="10.0.15" />
     <PackageReference Include="H.NotifyIcon.WinUI" Version="2.4.1" />
     <Content Update="Assets/Dwell.ico" CopyToOutputDirectory="PreserveNewest" />
     <Content Update="Assets/Dwell.png" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="HardwareSensorNotices.txt" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="$(PkgHidSharp)/LICENSE.txt" Link="HidSharp-LICENSE.txt" CopyToPublishDirectory="PreserveNewest" Condition="'$(PkgHidSharp)' != ''" />
+    <Content Include="Mono-LICENSE.txt" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
   <Target Name="IncludeWinUIResourcesInPublish" BeforeTargets="ComputeFilesToPublish">
     <ItemGroup>

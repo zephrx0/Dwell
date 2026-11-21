@@ -319,4 +319,21 @@
   <data name="ExcludedAppsHeading" xml:space="preserve"><value>Hidden apps</value></data>
   <data name="ExcludedAppsEmpty" xml:space="preserve"><value>Expand an app in Overview to hide it from statistics.</value></data>
   <data name="RestoreToStatistics" xml:space="preserve"><value>Restore to statistics</value></data>
+  <data name="PowerPageTitle" xml:space="preserve"><value>Power usage</value></data>
+  <data name="PowerSensors" xml:space="preserve"><value>Sensor readings</value></data>
+  <data name="PowerDevice" xml:space="preserve"><value>Device and sensor</value></data>
+  <data name="PowerWatts" xml:space="preserve"><value>Power</value></data>
+  <data name="PowerIncluded" xml:space="preserve"><value>Included</value></data>
+  <data name="PowerYes" xml:space="preserve"><value>Yes</value></data>
+  <data name="PowerNow" xml:space="preserve"><value>Now</value></data>
+  <data name="PowerWindow" xml:space="preserve"><value>Last 5 minutes</value></data>
+  <data name="PowerSourceNone" xml:space="preserve"><value>PC power usage</value></data>
+  <data name="PowerSourceComponents" xml:space="preserve"><value>Sum of available component readings</value></data>
+  <data name="PowerSourceSupplyOutput" xml:space="preserve"><value>PC power at the power supply output</value></data>
+  <data name="PowerSourceBattery" xml:space="preserve"><value>PC power from the battery</value></data>
+  <data name="PowerReading" xml:space="preserve"><value>Reading sensors…</value></data>
+  <data name="PowerNoReadings" xml:space="preserve"><value>No power readings available</value></data>
+  <data name="PowerNoSensor" xml:space="preserve"><value>Power sensor unavailable</value></data>
+  <data name="PowerBattery" xml:space="preserve"><value>Battery</value></data>
+  <data name="PowerDischarge" xml:space="preserve"><value>Discharge power</value></data>
 </root>

@@ -39,6 +39,7 @@ public sealed partial class MainWindow : Window
     private bool _exiting;
     private bool _exitInProgress;
     private Views.UsageChart? _chart;
+    private Views.PowerView? _powerView;
     private readonly UISettings _uiSettings = new();
     private MicaController? _mica;
     private SystemBackdropConfiguration? _backdrop;
@@ -94,6 +95,7 @@ public sealed partial class MainWindow : Window
             _updateTimer.Stop();
             _updateShutdown.Cancel();
             _updateShutdown.Dispose();
+            _powerView?.Close();
             _reminders.Reminder -= NotifyReminder;
             _tracker.PauseChanged -= PauseChanged;
             _uiSettings.ColorValuesChanged -= PersonalizationChanged;
@@ -153,6 +155,8 @@ public sealed partial class MainWindow : Window
         StartupSwitch.Header = Strings.Get("AutoStart.Header");
         StartupSettingsLink.Content = Strings.Get("StartupSettingsLink.Content");
         ExcludedAppsItem.Content = ExcludedAppsHeading.Text = Strings.Get("ExcludedAppsHeading");
+        PowerItem.Content = Strings.Get("PowerPageTitle");
+        _powerView?.Localize();
         ExcludedAppsEmpty.Text = Strings.Get("ExcludedAppsEmpty");
         if (ExcludedAppsScroll.Visibility == Visibility.Visible) ExcludedApps.Refresh();
         UpdatesHeading.Text = Strings.Get("UpdatesHeading");
@@ -184,6 +188,7 @@ public sealed partial class MainWindow : Window
         else if (HistoryPage.Visibility == Visibility.Visible) await Activity.RefreshAsync();
         else if (LimitsPage.Visibility == Visibility.Visible) await Rules.RefreshAsync();
         else if (ExcludedAppsScroll.Visibility == Visibility.Visible) ExcludedApps.Refresh();
+        else if (PowerHost.Visibility == Visibility.Visible) ShowPower();
     }
 
     private void EnsureChart()
@@ -193,10 +198,17 @@ public sealed partial class MainWindow : Window
         ChartHost.Content = _chart;
     }
 
+    private void ShowPower()
+    {
+        if (_powerView is null) PowerHost.Content = _powerView = new Views.PowerView();
+        _powerView.Start();
+    }
+
     public void Hide()
     {
         _visible = false;
         _refreshTimer.Stop();
+        _powerView?.Stop();
         AppWindow.Hide();
         ChartHost.Content = null;
         _chart = null;
@@ -207,6 +219,8 @@ public sealed partial class MainWindow : Window
         if (OverviewScroll is null || SettingsScroll is null) return;
         var page = args.SelectedItemContainer?.Tag as string ?? "overview";
         OverviewScroll.Visibility = page == "overview" ? Visibility.Visible : Visibility.Collapsed;
+        PowerHost.Visibility = page == "power" ? Visibility.Visible : Visibility.Collapsed;
+        if (page != "power") _powerView?.Stop();
         ExcludedAppsScroll.Visibility = page == "excluded" ? Visibility.Visible : Visibility.Collapsed;
         SettingsScroll.Visibility = page == "settings" ? Visibility.Visible : Visibility.Collapsed;
         HistoryPage.Visibility = page == "activity" ? Visibility.Visible : Visibility.Collapsed;
@@ -216,6 +230,7 @@ public sealed partial class MainWindow : Window
         else if (page == "activity") await Activity.RefreshAsync();
         else if (page == "rules") await Rules.RefreshAsync();
         else if (page == "excluded") ExcludedApps.Refresh();
+        else if (page == "power") ShowPower();
     }
 
     private bool IsEditing()

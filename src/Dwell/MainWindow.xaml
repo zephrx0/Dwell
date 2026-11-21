@@ -25,6 +25,9 @@
           <NavigationViewItem x:Name="ActivityItem" Tag="activity" Icon="Clock" />
           <NavigationViewItem x:Name="RulesItem" Tag="rules" Icon="Manage" />
           <NavigationViewItem x:Name="ExcludedAppsItem" Tag="excluded" Icon="View" />
+          <NavigationViewItem x:Name="PowerItem" Tag="power">
+            <NavigationViewItem.Icon><FontIcon Glyph="&#xE945;" /></NavigationViewItem.Icon>
+          </NavigationViewItem>
         </NavigationView.MenuItems>
         <NavigationView.FooterMenuItems><NavigationViewItem x:Name="SettingsItem" x:Uid="SettingsNav" Tag="settings" Icon="Setting" /></NavigationView.FooterMenuItems>
         <Grid>
@@ -142,6 +145,7 @@
           </ScrollViewer>
           <views:ActivityView x:Name="HistoryPage" DataContext="{x:Bind Activity}" Visibility="Collapsed" />
           <views:RulesView x:Name="LimitsPage" DataContext="{x:Bind Rules}" Visibility="Collapsed" />
+          <ContentControl x:Name="PowerHost" Visibility="Collapsed" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" />
           <ScrollViewer x:Name="ExcludedAppsScroll" Visibility="Collapsed" HorizontalScrollBarVisibility="Disabled">
             <StackPanel Padding="16,12,16,16" Spacing="12" MaxWidth="640" HorizontalAlignment="Left" DataContext="{x:Bind ExcludedApps}">
               <TextBlock x:Name="ExcludedAppsHeading" FontSize="24" FontWeight="SemiBold" />

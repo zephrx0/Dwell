@@ -1,0 +1,22 @@
+Dwell reads hardware sensors through LibreHardwareMonitorLib 0.9.6.
+LibreHardwareMonitor and its contributors distribute the library under the Mozilla Public License 2.0.
+The complete corresponding source and notices are available at
+https://github.com/LibreHardwareMonitor/LibreHardwareMonitor/tree/3d331e3370efb858411f19511373eff65a218701
+
+The following supporting libraries are also available under the Mozilla Public License 2.0.
+DiskInfoToolkit 1.1.2
+https://github.com/Blacktempel/DiskInfoToolkit/tree/25319eae5781e75bcf141e844ceab2afe94d40ea
+RAMSPDToolkit-NDD 1.4.2
+https://github.com/Blacktempel/RAMSPDToolkit/tree/3b47b960e0830fef344624ad5e389675d5f0a1ce
+BlackSharp.Core 1.0.7
+https://github.com/Blacktempel/BlackSharp/tree/c70b735c6cec123ee8a046ac4a0bc6c606f52cf0
+
+Mozilla Public License 2.0
+https://www.mozilla.org/MPL/2.0/
+
+See HidSharp-LICENSE.txt for copyright and license information for HidSharp.
+LibreHardwareMonitor includes PawnIO modules. The module source and licensing
+terms are available at https://github.com/namazso/PawnIO.Modules.
+
+Mono.Posix.NETStandard is part of Mono's .NET libraries.
+See Mono-LICENSE.txt for licensing and https://github.com/mono/mono for source.

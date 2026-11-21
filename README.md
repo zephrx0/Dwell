@@ -18,6 +18,8 @@ Dwell показывает, на что уходит время за компь�
 
 В разделе «Лимиты и отдых» можно задать дневной лимит, настроить расписание отдыха или включить напоминания о перерывах. Тему, язык и автозапуск в трее можно поменять в настройках.
 
+Раздел «Энергопотребление» показывает ватты в реальном времени. Пока он открыт, Dwell строит график за последние пять минут и показывает, какие датчики вошли в сумму. Для общего расхода используются показания выхода блока питания или разряда батареи, когда они доступны. В остальных случаях видна сумма измеренных компонентов.
+
 История и настройки хранятся на твоём компьютере. Статистика работает офлайн.
 
 ## English
@@ -27,6 +29,8 @@ Dwell shows where your time goes on Windows. Pick a day or a week in Overview to
 If a background service is cluttering up your stats, expand its row in Overview and select **Exclude from statistics**. To bring it back with its history, open **Hidden apps** in the sidebar and select **Restore to statistics**.
 
 **Limits and breaks** is where you can set daily limits, schedule downtime, and turn on break reminders. Theme, language, and startup in the system tray are in Settings. Your history and settings stay on your PC, and tracking works offline.
+
+Open **Power usage** for a live chart in watts and a table showing which readings count toward the total. Dwell uses the power supply output or battery discharge rate when it can measure those directly. Otherwise, it adds up the component readings it can use. The chart covers up to five minutes while the page is open.
 
 Run the installer on an x64 PC with Windows 10 version 1809 or later, or Windows 11. The .NET runtime is included. Dwell sends a Windows notification when an update is available. You can install it from **Settings → Updates**. [Download Dwell-Setup.exe](https://github.com/zephrx0/Dwell/releases/latest/download/Dwell-Setup.exe)
 
@@ -39,5 +43,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File build.ps1
 ```
 
 The script builds Dwell, runs the tests, and puts `Dwell-Setup.exe` in a versioned folder under `artifacts`.
+
+Hardware sensors are read through LibreHardwareMonitor. [Hardware sensor licenses](src/Dwell/HardwareSensorNotices.txt)
 
 Made by [zephrx0](https://github.com/zephrx0).
