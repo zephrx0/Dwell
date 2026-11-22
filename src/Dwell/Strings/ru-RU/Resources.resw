@@ -339,15 +339,15 @@
   <data name="PowerGpuSuspended" xml:space="preserve"><value>Опрос видеокарт приостановлен.</value></data>
   <data name="PowerNoReadings" xml:space="preserve"><value>Нет доступных показаний мощности</value></data>
   <data name="PowerNoSensor" xml:space="preserve"><value>Датчик мощности недоступен</value></data>
-  <data name="PowerProcessorPackage" xml:space="preserve"><value>Мощность процессора</value></data>
-  <data name="PowerProcessorPpt" xml:space="preserve"><value>Мощность процессора (PPT)</value></data>
+  <data name="PowerProcessorPackage" xml:space="preserve"><value>Потребление центрального процессора</value></data>
+  <data name="PowerProcessorPpt" xml:space="preserve"><value>Потребление центрального процессора (PPT)</value></data>
   <data name="PowerAverageSeconds" xml:space="preserve"><value>среднее за {0:0.0} с</value></data>
   <data name="PowerWindowsMeterDetail" xml:space="preserve"><value>Счётчик энергии Windows ({0}), среднее за {1:0.0} с.</value></data>
   <data name="PowerHardwareMeterDetail" xml:space="preserve"><value>Датчик {0} через LibreHardwareMonitor.</value></data>
   <data name="PowerProcessorCores" xml:space="preserve"><value>Мощность по доступным ядрам</value></data>
   <data name="PowerCoreNumber" xml:space="preserve"><value>Ядро {0}</value></data>
-  <data name="PowerGraphicsPower" xml:space="preserve"><value>Мощность видеокарты</value></data>
-  <data name="PowerGraphicsBoard" xml:space="preserve"><value>Мощность всей видеокарты</value></data>
+  <data name="PowerGraphicsPower" xml:space="preserve"><value>Потребление графического процессора</value></data>
+  <data name="PowerGraphicsBoard" xml:space="preserve"><value>Потребление всей видеокарты</value></data>
   <data name="PowerCpuNoWatts" xml:space="preserve"><value>Нет замера мощности процессора.</value></data>
   <data name="PowerCpuLoad" xml:space="preserve"><value>Загрузка {0}%</value></data>
   <data name="PowerCpuHelp" xml:space="preserve"><value>Как включить замер процессора</value></data>
