@@ -7,12 +7,18 @@ internal static class NativeMethods
 {
     internal delegate nint SubclassProc(nint hwnd, uint message, nuint wParam, nint lParam, nuint id, nuint data);
     [StructLayout(LayoutKind.Sequential)] internal struct LastInputInfo { public uint Size; public uint Time; }
+    [StructLayout(LayoutKind.Sequential)] private record struct Rect(int Left, int Top, int Right, int Bottom);
+    [StructLayout(LayoutKind.Sequential)] private struct MonitorInfo { public uint Size; public Rect Bounds, WorkArea; public uint Flags; }
     [StructLayout(LayoutKind.Sequential, Size = 16)] internal struct GamepadState { public uint Packet; }
     [DllImport("xinput1_4.dll")] internal static extern uint XInputGetState(uint index, out GamepadState state);
     [DllImport("user32.dll", CharSet = CharSet.Unicode)] internal static extern int MessageBox(nint hwnd, string text, string caption, uint type);
     [StructLayout(LayoutKind.Sequential)] private struct HighContrastInfo { public uint Size; public uint Flags; public nint Scheme; }
     [DllImport("user32.dll", CharSet = CharSet.Unicode)] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool SystemParametersInfo(uint action, uint parameter, ref HighContrastInfo info, uint flags);
     [DllImport("user32.dll")] internal static extern nint GetForegroundWindow();
+    [DllImport("user32.dll")] private static extern nint MonitorFromWindow(nint hwnd, uint flags);
+    [DllImport("user32.dll", EntryPoint = "GetMonitorInfoW")] [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool GetMonitorInfo(nint monitor, ref MonitorInfo info);
+    [DllImport("dwmapi.dll")] private static extern int DwmGetWindowAttribute(nint hwnd, uint attribute, out Rect rect, uint length);
     [DllImport("user32.dll")] internal static extern uint GetDpiForWindow(nint hwnd);
     [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool AllowSetForegroundWindow(uint processId);
     internal delegate bool EnumWindowProc(nint hwnd, nint data);
@@ -43,6 +49,15 @@ internal static class NativeMethods
         if (!WTSQuerySessionInformation(0, uint.MaxValue, 25, out var buffer, out var bytes)) return true;
         try { return bytes < 20 || Marshal.ReadInt32(buffer) != 1 || Marshal.ReadInt32(buffer, 16) == 0; }
         finally { WTSFreeMemory(buffer); }
+    }
+
+    internal static bool IsFullScreen(nint hwnd)
+    {
+        if (hwnd == 0 || DwmGetWindowAttribute(hwnd, 9, out var bounds, (uint)Marshal.SizeOf<Rect>()) != 0)
+            return false;
+        var monitor = MonitorFromWindow(hwnd, 0);
+        var info = new MonitorInfo { Size = (uint)Marshal.SizeOf<MonitorInfo>() };
+        return monitor != 0 && GetMonitorInfo(monitor, ref info) && bounds == info.Bounds;
     }
 
     internal static bool HighContrastEnabled()

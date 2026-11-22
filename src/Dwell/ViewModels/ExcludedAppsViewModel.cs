@@ -20,7 +20,7 @@ public sealed partial class ExcludedAppsViewModel(AppRepository repository) : Ob
 
     public void Refresh() => Apps = UsageProjection.Groups(repository.KnownApps(), includeIgnored: true)
         .Where(group => group.Variants.Any(app => app.Ignored))
-        .Select(group => new ExcludedAppItem(group.Key, ApplicationPolicy.DisplayName(group.App.Name), Path.GetFileName(group.App.Exe)))
+        .Select(group => new ExcludedAppItem(group.Key, ApplicationPolicy.DisplayName(group.App.Name), Path.GetFileName(ApplicationPolicy.ExecutablePath(group.App.Exe))))
         .OrderBy(app => app.Name, StringComparer.Create(Strings.Culture, ignoreCase: true)).ToArray();
 
     public void Restore(ExcludedAppItem app)

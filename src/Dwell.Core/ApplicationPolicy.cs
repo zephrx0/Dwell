@@ -13,7 +13,7 @@ public static class ApplicationPolicy
     private static readonly string[] WindowsPackages =
     [
         "Microsoft.ScreenSketch_", "Microsoft.WindowsNotepad_", "Microsoft.Paint_", "Microsoft.WindowsCalculator_",
-        "Microsoft.Windows.Photos_", "Microsoft.WindowsCamera_", "Microsoft.ZuneMusic_", "Microsoft.ZuneVideo_",
+        "Microsoft.Windows.Photos_", "Microsoft.WindowsCamera_", "Microsoft.ZuneMusic_",
         "Microsoft.YourPhone_", "Microsoft.WindowsTerminal_", "MicrosoftWindows.Client.",
         "microsoft.windowscommunicationsapps_", "Microsoft.WindowsMaps_", "Microsoft.WindowsAlarms_",
         "Microsoft.WindowsSoundRecorder_", "Microsoft.GetHelp_", "Microsoft.Getstarted_",
@@ -25,14 +25,24 @@ public static class ApplicationPolicy
     public static bool IsUserApplication(string exe)
     {
         if (string.IsNullOrWhiteSpace(exe)) return false;
-        var path = exe.Replace('/', '\\');
+        var path = ExecutablePath(exe).Replace('/', '\\');
         if (WindowsDirectory.Length > 0 && path.StartsWith(WindowsDirectory + "\\", StringComparison.OrdinalIgnoreCase)) return false;
         if (WindowsExecutables.Contains(Path.GetFileName(path))) return false;
         return !WindowsPackages.Any(package => path.Contains("\\" + package, StringComparison.OrdinalIgnoreCase));
     }
 
+    public static string ExecutablePath(string appKey)
+    {
+        // Windows paths cannot contain a pipe. Java entries append a hash of the launch target.
+        var separator = appKey.IndexOf('|');
+        return separator < 0 ? appKey : appKey[..separator];
+    }
+
+    public static bool IsJavaLauncher(string exe) =>
+        Path.GetFileName(exe).ToUpperInvariant() is "JAVA.EXE" or "JAVAW.EXE";
+
     public static string Identity(string exe, string name) =>
-        (Path.GetFileName(exe).ToUpperInvariant() is "JAVA.EXE" or "JAVAW.EXE" ? exe.ToUpperInvariant() : Path.GetFileName(exe).ToUpperInvariant())
+        (IsJavaLauncher(ExecutablePath(exe)) ? exe.ToUpperInvariant() : Path.GetFileName(exe).ToUpperInvariant())
         + "|" + DisplayName(name).ToUpperInvariant();
 
     public static string DisplayName(string name)

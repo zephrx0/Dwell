@@ -119,8 +119,11 @@ public sealed class AppRepository : IDisposable
             if (_apps.TryGetValue(path, out var known)) return known;
             var identity = ApplicationPolicy.Identity(path, name);
             var variants = _apps.Values.Where(x => ApplicationPolicy.Identity(x.Exe, x.Name) == identity).ToArray();
-            var category = variants.FirstOrDefault()?.Category ?? Categories.GetValueOrDefault(Path.GetFileName(path), AppCategory.Other);
-            var ignored = variants.Any(x => x.Ignored);
+            var exe = ApplicationPolicy.ExecutablePath(path);
+            var legacy = variants.Length == 0 && exe != path ? _apps.GetValueOrDefault(exe) : null;
+            var category = variants.FirstOrDefault()?.Category ?? legacy?.Category ??
+                Categories.GetValueOrDefault(Path.GetFileName(exe), AppCategory.Other);
+            var ignored = variants.Any(x => x.Ignored) || legacy?.Ignored == true;
             using var command = _connection.CreateCommand();
             command.CommandText = "INSERT INTO Apps(exe,name,icon,category,ignored) VALUES($exe,$name,$icon,$category,$ignored) RETURNING id";
             command.Parameters.AddWithValue("$exe", path);

@@ -61,7 +61,9 @@ public sealed class TrackingService(ForegroundService foreground, AppRepository 
                     var tick = Environment.TickCount64;
                     var elapsed = (tick - lastTick) / 1000d;
                     lastTick = tick;
-                    var paused = _manualPaused || _locked || _sleeping || foreground.IdleTime() >= TimeSpan.FromMinutes(settings.Current.IdleMinutes);
+                    var paused = _manualPaused || _locked || _sleeping;
+                    if (!paused && foreground.IdleTime() >= TimeSpan.FromMinutes(settings.Current.IdleMinutes))
+                        paused = !await foreground.IsWatchingVideoAsync(_stop.Token);
                     var interrupted = _interrupted;
                     _interrupted = false;
                     // Slow metadata / thumbnail reads stay outside the session lock.

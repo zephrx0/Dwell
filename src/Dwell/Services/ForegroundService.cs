@@ -16,6 +16,8 @@ public sealed class ForegroundService(AppRepository repository)
     private long _lastLookup;
     private long _lastGamepadInput = long.MinValue;
     private readonly uint?[] _gamepadPackets = new uint?[4];
+    private readonly JavaProcessLookup _java = new();
+    private readonly ForegroundVideo _video = new();
 
     internal static string? ProcessPath(uint pid)
     {
@@ -33,7 +35,22 @@ public sealed class ForegroundService(AppRepository repository)
     {
         var window = NativeMethods.GetForegroundWindow();
         NativeMethods.GetWindowThreadProcessId(window, out var pid);
-        return window == _lastWindow && pid == _lastPid && _lastApp is not null ? _lastApp.Exe : ApplicationPath(window, pid);
+        if (window == _lastWindow && pid == _lastPid && _lastApp is not null) return _lastApp.Exe;
+        var path = ApplicationPath(window, ref pid);
+        return path is null ? null : ResolveProcess(pid, path).Key;
+    }
+
+    internal (string Key, string? Name) ResolveProcess(uint pid, string path) => _java.Resolve(pid, path);
+
+    internal Task<bool> IsWatchingVideoAsync(CancellationToken cancellationToken)
+    {
+        var window = NativeMethods.GetForegroundWindow();
+        if (!NativeMethods.IsFullScreen(window)) return Task.FromResult(false);
+        NativeMethods.GetWindowThreadProcessId(window, out var pid);
+        var path = ApplicationPath(window, ref pid);
+        return path is not null && ApplicationPolicy.IsUserApplication(path)
+            ? _video.IsPlayingAsync(window, pid, path, cancellationToken)
+            : Task.FromResult(false);
     }
 
     public TimeSpan IdleTime()
@@ -58,23 +75,27 @@ public sealed class ForegroundService(AppRepository repository)
             TimeSpan.FromMilliseconds(Math.Min(idle.TotalMilliseconds, now - _lastGamepadInput));
     }
 
-    private static string? ApplicationPath(nint window, uint pid)
+    private static string? ApplicationPath(nint window, ref uint pid)
     {
         if (window == 0 || pid == 0) return null;
         var path = ProcessPath(pid);
         if (!string.Equals(Path.GetFileName(path), "ApplicationFrameHost.exe", StringComparison.OrdinalIgnoreCase))
             return path;
         string? childPath = null;
+        var parentPid = pid;
+        var targetPid = pid;
         var className = new StringBuilder(64);
         NativeMethods.EnumChildWindows(window, (child, _) =>
         {
             NativeMethods.GetClassName(child, className, className.Capacity);
             if (!string.Equals(className.ToString(), "Windows.UI.Core.CoreWindow", StringComparison.Ordinal)) return true;
             NativeMethods.GetWindowThreadProcessId(child, out var childPid);
-            if (childPid == pid || childPid == 0) return true;
+            if (childPid == parentPid || childPid == 0) return true;
             childPath = ProcessPath(childPid);
+            if (childPath is not null) targetPid = childPid;
             return childPath is null;
         }, 0);
+        pid = targetPid;
         return childPath;
     }
 
@@ -86,14 +107,15 @@ public sealed class ForegroundService(AppRepository repository)
         if (window == _lastWindow && pid == _lastPid && Environment.TickCount64 - _lastLookup < (_lastApp is null ? 1000 : 30000)) return _lastApp;
         _lastWindow = window; _lastPid = pid; _lastLookup = Environment.TickCount64;
         _lastApp = null;
-        var path = ApplicationPath(window, pid);
+        var path = ApplicationPath(window, ref pid);
         if (path is null || !ApplicationPolicy.IsUserApplication(path)) return null;
-        if (repository.Find(path) is { } known) return _lastApp = known;
-        var name = Path.GetFileNameWithoutExtension(path);
-        try { name = FileVersionInfo.GetVersionInfo(path).FileDescription is { Length: > 0 } description ? description : name; }
+        var (key, targetName) = ResolveProcess(pid, path);
+        if (repository.Find(key) is { } known) return _lastApp = known;
+        var name = targetName ?? Path.GetFileNameWithoutExtension(path);
+        try { if (targetName is null && FileVersionInfo.GetVersionInfo(path).FileDescription is { Length: > 0 } description) name = description; }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.ComponentModel.Win32Exception) { }
         var icon = await ExtractIconAsync(path);
-        return _lastApp = repository.Add(path, name, icon);
+        return _lastApp = repository.Add(key, name, icon);
     }
 
     private static async Task<string> ExtractIconAsync(string path)

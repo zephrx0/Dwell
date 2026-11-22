@@ -5,7 +5,7 @@ namespace Dwell.Services;
 
 public sealed record BackgroundResource(string Key, long[] AppIds, double? Cpu, long Memory);
 
-public sealed class BackgroundTracker(AppRepository repository)
+public sealed class BackgroundTracker(AppRepository repository, ForegroundService foreground)
 {
     private readonly Dictionary<long, SessionAccumulator> _sessions = [];
 
@@ -37,7 +37,8 @@ public sealed class BackgroundTracker(AppRepository repository)
         var known = UsageProjection.Groups(repository.KnownApps()).SelectMany(x => x.Variants)
             .Where(x => !Path.GetFileName(x.Exe).Equals("Dwell.exe", StringComparison.OrdinalIgnoreCase))
             .ToDictionary(x => x.Exe, StringComparer.OrdinalIgnoreCase);
-        var names = known.Keys.Select(Path.GetFileNameWithoutExtension).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var names = known.Keys.Select(path => Path.GetFileNameWithoutExtension(ApplicationPolicy.ExecutablePath(path)))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
         var running = new Dictionary<string, AppRecord>(StringComparer.Ordinal);
         foreach (var process in Process.GetProcesses())
         {
@@ -47,7 +48,7 @@ public sealed class BackgroundTracker(AppRepository repository)
                 {
                     if (!names.Contains(process.ProcessName) || process.SessionId != _sessionId) continue;
                     var path = ForegroundService.ProcessPath((uint)process.Id);
-                    if (path is null || !known.TryGetValue(path, out var app)) continue;
+                    if (path is null || !known.TryGetValue(foreground.ResolveProcess((uint)process.Id, path).Key, out var app)) continue;
                     var key = ApplicationPolicy.Identity(app.Exe, app.Name);
                     running.TryAdd(key, app);
                     var start = process.StartTime.ToUniversalTime().Ticks;
