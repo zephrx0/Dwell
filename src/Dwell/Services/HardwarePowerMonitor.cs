@@ -1,4 +1,3 @@
-using System.Management;
 using System.Runtime.InteropServices;
 using Dwell.Core;
 using LibreHardwareMonitor.Hardware;
@@ -8,14 +7,15 @@ using Windows.System.Power;
 
 namespace Dwell.Services;
 
-internal sealed record HardwarePowerSample(PowerTotal Total, IReadOnlyList<PowerDevice> Devices, double? BatteryWatts);
+internal sealed record HardwarePowerSample(
+    PowerTotal Total, IReadOnlyList<PowerDevice> Devices, double? BatteryWatts, IReadOnlyList<DiskActivity> DiskActivity);
 
 internal sealed class HardwarePowerMonitor : IDisposable
 {
     private readonly object _gate = new();
     private readonly WindowsEnergyMeters _energyMeters = new();
     private Computer? _computer;
-    private (int Index, string Name)[]? _disks;
+    private readonly WindowsDiskActivity _disks = new();
     private readonly Dictionary<string, PowerDeviceKind> _radeons = new();
     private long _retryAt;
     private bool _disposed;
@@ -24,9 +24,9 @@ internal sealed class HardwarePowerMonitor : IDisposable
     {
         lock (_gate)
         {
-            if (_disposed) return new(PowerTotal.Unavailable, [], null);
+            if (_disposed) return new(PowerTotal.Unavailable, [], null, []);
             var devices = new List<PowerDevice>();
-            var storageIndices = new HashSet<int>();
+            var storageIndices = new Dictionary<uint, int>();
             var cpuIndices = new Dictionary<int, int>();
             if (OpenComputer() is { } computer)
             {
@@ -34,17 +34,32 @@ internal sealed class HardwarePowerMonitor : IDisposable
                 {
                     if (hardware.HardwareType == HardwareType.Cpu && int.TryParse(hardware.Identifier.ToString().Split('/')[^1], out var cpuIndex))
                         cpuIndices.TryAdd(cpuIndex, devices.Count);
+                    if (hardware is StorageDevice storage && storage.Storage.DriveNumber >= 0)
+                        storageIndices.TryAdd((uint)storage.Storage.DriveNumber, devices.Count);
                     ReadDevice(hardware, devices, includeWithoutSensors: true);
-                    if (hardware is StorageDevice storage) storageIndices.Add(storage.Storage.DriveNumber);
                 }
             }
 
             AddWindowsReadings(devices, cpuIndices, _energyMeters.Read());
-            _disks ??= ReadDisks();
-            devices.AddRange(_disks.Where(x => !storageIndices.Contains(x.Index))
-                .Select(x => new PowerDevice(x.Name, PowerDeviceKind.Independent, [])));
+            var diskActivity = new List<DiskActivity>();
+            foreach (var disk in _disks.Read())
+            {
+                diskActivity.Add(new($"disk-activity:{disk.Id}", disk.Name, disk.Load?.ActiveFraction * 100));
+                if (!storageIndices.TryGetValue(disk.Index, out var index))
+                {
+                    index = devices.Count;
+                    devices.Add(new(disk.Name, PowerDeviceKind.Independent, []));
+                }
+
+                var device = devices[index];
+                if (disk.EstimatedWatts is { } watts && device.Sensors.All(x => x.Watts is null))
+                    devices[index] = device with
+                    {
+                        Sensors = [.. device.Sensors, new($"disk-estimate:{disk.Id}", "Disk power estimate", watts, PowerSensorKind.EstimatedDiskPower)]
+                    };
+            }
             var battery = ReadBattery();
-            return new(PowerTotals.Calculate(devices, battery), devices, battery);
+            return new(PowerTotals.Calculate(devices, battery), devices, battery, diskActivity);
         }
     }
 
@@ -216,24 +231,6 @@ internal sealed class HardwarePowerMonitor : IDisposable
             }
             devices[index] = device with { Sensors = sensors.ToArray() };
         }
-    }
-
-    private static (int Index, string Name)[] ReadDisks()
-    {
-        try
-        {
-            using var query = new ManagementObjectSearcher("SELECT Index, Model FROM Win32_DiskDrive");
-            using var results = query.Get();
-            var disks = new List<(int, string)>();
-            foreach (ManagementObject disk in results)
-            {
-                using (disk)
-                    if (disk["Index"] is uint index && disk["Model"] is string name)
-                        disks.Add(((int)index, name.Trim()));
-            }
-            return disks.OrderBy(x => x.Item1).ToArray();
-        }
-        catch (Exception ex) when (SensorError(ex) || ex is ManagementException) { return []; }
     }
 
     private static double? ReadBattery()

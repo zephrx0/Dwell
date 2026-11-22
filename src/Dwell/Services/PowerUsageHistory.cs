@@ -5,7 +5,8 @@ using Microsoft.Data.Sqlite;
 
 namespace Dwell.Services;
 
-internal sealed record PowerReading(long At, PowerTotal Total, Dictionary<string, double> Watts);
+internal sealed record PowerReading(long At, PowerTotal Total, Dictionary<string, double> Watts,
+    Dictionary<string, double>? DiskActivity = null);
 internal sealed record SavedPowerHistory(List<PowerReading> Readings, Dictionary<string, string> Labels);
 
 internal static class PowerUsageHistory

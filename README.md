@@ -20,6 +20,8 @@ Dwell показывает, на что уходит время за компь�
 
 Раздел «Энергопотребление» показывает ватты в реальном времени. Dwell записывает показания и в трее. График хранит последние 24 часа и показывает среднюю мощность за каждые 15 минут. Над графиком можно выбрать общую мощность или отдельный датчик. Dwell читает датчики оборудования и счётчики Windows, в том числе мощность процессора и памяти, если компьютер их передаёт. Источник общей цифры указан над графиком, а в таблице видно, какие показания вошли в расчёт.
 
+У дисков можно посмотреть активность по счётчикам Windows. Для моделей с паспортными данными Dwell также оценивает мощность по времени чтения, записи и простоя. Значок ≈ отмечает оценочные значения. В простое расчёт исходит из того, что диск включён.
+
 История и настройки хранятся на твоём компьютере. Статистика работает офлайн.
 
 ## English
@@ -31,6 +33,8 @@ If a background service is cluttering up your stats, expand its row in Overview 
 **Limits and breaks** is where you can set daily limits, schedule downtime, and turn on break reminders. Theme, language, and startup in the system tray are in Settings. Your history and settings stay on your PC, and tracking works offline.
 
 Open **Power usage** to see the last 24 hours in watts, averaged over 15-minute intervals. Dwell keeps recording in the tray and restores readings after a restart. You can plot total power or choose a single sensor above the chart. Dwell reads hardware sensors and Windows energy counters, including CPU and memory readings on supported PCs. The label above the chart identifies the source of the total, and the table shows which readings count toward it.
+
+You can also plot disk activity from Windows counters. For drives with published power figures, Dwell estimates consumption from read, write and idle time. The ≈ symbol marks estimates. The estimate assumes the drive stays powered on while idle.
 
 Run the installer on an x64 PC with Windows 10 version 1809 or later, or Windows 11. The .NET runtime is included. Dwell sends a Windows notification when an update is available. You can install it from **Settings → Updates**. [Download Dwell-Setup.exe](https://github.com/zephrx0/Dwell/releases/latest/download/Dwell-Setup.exe)
 

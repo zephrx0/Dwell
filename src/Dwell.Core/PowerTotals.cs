@@ -2,11 +2,11 @@ namespace Dwell.Core;
 
 public enum PowerDeviceKind { Other, Cpu, AmdCpu, Gpu, AmdGpu, IntegratedGpu, Independent, Memory, RaplMemory, Supply }
 public enum PowerSource { None, Components, SupplyOutput, Battery }
-public enum PowerSensorKind { Other, HardwareCpuCore, WindowsCpuCore }
+public enum PowerSensorKind { Other, HardwareCpuCore, WindowsCpuCore, EstimatedDiskPower }
 
 public sealed record PowerSensor(string Id, string Name, double? Watts, PowerSensorKind Kind = PowerSensorKind.Other);
 public sealed record PowerDevice(string Name, PowerDeviceKind Kind, PowerSensor[] Sensors);
-public sealed record PowerTotal(PowerSource Source, double? Watts, string[] SensorIds, bool IsCpuPartial = false)
+public sealed record PowerTotal(PowerSource Source, double? Watts, string[] SensorIds, bool IsCpuPartial = false, bool IsEstimated = false)
 {
     public static PowerTotal Unavailable { get; } = new(PowerSource.None, null, []);
 }
@@ -63,7 +63,8 @@ public static class PowerTotals
 
     private static PowerSensor? FindIndependent(PowerDevice device) =>
         Find(device, "Total Power", "Power Consumption", "Power") ??
-        (device.Sensors is [var only] && Available(only) ? only : null);
+        (device.Sensors is [var only] && Available(only) ? only : null) ??
+        device.Sensors.FirstOrDefault(x => x.Kind == PowerSensorKind.EstimatedDiskPower && Available(x));
 
     private static PowerSensor? Find(PowerDevice device, params string[] sensorNames)
     {
@@ -78,6 +79,7 @@ public static class PowerTotals
     {
         var sensors = readings.DistinctBy(x => x.Id).OrderBy(x => x.Id, StringComparer.Ordinal).ToArray();
         return sensors.Length == 0 ? PowerTotal.Unavailable :
-            new(source, sensors.Sum(x => x.Watts!.Value), sensors.Select(x => x.Id).ToArray(), isCpuPartial);
+            new(source, sensors.Sum(x => x.Watts!.Value), sensors.Select(x => x.Id).ToArray(), isCpuPartial,
+                sensors.Any(x => x.Kind == PowerSensorKind.EstimatedDiskPower));
     }
 }

@@ -320,23 +320,27 @@
   <data name="ExcludedAppsEmpty" xml:space="preserve"><value>Чтобы скрыть приложение из статистики, раскройте его строку в обзоре.</value></data>
   <data name="RestoreToStatistics" xml:space="preserve"><value>Вернуть в статистику</value></data>
   <data name="PowerPageTitle" xml:space="preserve"><value>Энергопотребление</value></data>
-  <data name="PowerSensors" xml:space="preserve"><value>Показания датчиков</value></data>
-  <data name="PowerDevice" xml:space="preserve"><value>Устройство и датчик</value></data>
-  <data name="PowerWatts" xml:space="preserve"><value>Мощность</value></data>
+  <data name="PowerSensors" xml:space="preserve"><value>Показатели устройств</value></data>
+  <data name="PowerDevice" xml:space="preserve"><value>Устройство и показатель</value></data>
+  <data name="PowerValue" xml:space="preserve"><value>Значение</value></data>
   <data name="PowerIncluded" xml:space="preserve"><value>Учтено</value></data>
   <data name="PowerYes" xml:space="preserve"><value>Да</value></data>
   <data name="PowerNow" xml:space="preserve"><value>Сейчас</value></data>
-  <data name="PowerWindow" xml:space="preserve"><value>Последние 24 часа, средняя мощность за 15 минут</value></data>
+  <data name="PowerWindow" xml:space="preserve"><value>Последние 24 часа, средние значения за 15 минут</value></data>
   <data name="PowerChartSource" xml:space="preserve"><value>На графике</value></data>
   <data name="PowerChartTotal" xml:space="preserve"><value>Общая мощность</value></data>
   <data name="PowerSourceNone" xml:space="preserve"><value>Потребление ПК</value></data>
   <data name="PowerSourceComponents" xml:space="preserve"><value>Сумма доступных показаний компонентов</value></data>
   <data name="PowerSourcePartialCpu" xml:space="preserve"><value>Неполная сумма. Нет замера мощности всего процессора.</value></data>
+  <data name="PowerSourceEstimatedDisks" xml:space="preserve"><value>В сумму входит оценка мощности дисков.</value></data>
   <data name="PowerSourceSupplyOutput" xml:space="preserve"><value>Потребление ПК по выходу блока питания</value></data>
   <data name="PowerSourceBattery" xml:space="preserve"><value>Потребление ПК от батареи</value></data>
   <data name="PowerReading" xml:space="preserve"><value>Считываем датчики…</value></data>
   <data name="PowerNoReadings" xml:space="preserve"><value>Нет доступных показаний мощности</value></data>
   <data name="PowerNoSensor" xml:space="preserve"><value>Датчик мощности недоступен</value></data>
+  <data name="PowerDiskActivity" xml:space="preserve"><value>Активность диска</value></data>
+  <data name="PowerDiskEstimate" xml:space="preserve"><value>Оценка мощности</value></data>
+  <data name="PowerDiskEstimateNote" xml:space="preserve"><value>Оценка по активности диска в Windows и данным производителя. В простое диск считается включённым.</value></data>
   <data name="PowerBattery" xml:space="preserve"><value>Батарея</value></data>
   <data name="PowerDischarge" xml:space="preserve"><value>Мощность разряда</value></data>
 </root>

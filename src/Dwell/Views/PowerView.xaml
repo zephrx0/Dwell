@@ -35,14 +35,14 @@
             <TextBlock x:Name="WaitMessage" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
           </Grid>
         </Border>
-          <TextBlock x:Name="WindowLabel" Foreground="{ThemeResource TextFillColorSecondaryBrush}" FontSize="12" />
+          <TextBlock x:Name="WindowLabel" Foreground="{ThemeResource TextFillColorSecondaryBrush}" FontSize="12" TextWrapping="Wrap" />
       </StackPanel>
       <StackPanel Spacing="8">
         <TextBlock x:Name="SensorsHeading" FontSize="18" FontWeight="SemiBold" />
         <Grid ColumnSpacing="12" Padding="8,0">
           <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="82" /><ColumnDefinition Width="70" /></Grid.ColumnDefinitions>
           <TextBlock x:Name="DeviceHeading" />
-          <TextBlock x:Name="WattsHeading" Grid.Column="1" HorizontalAlignment="Right" />
+          <TextBlock x:Name="ValueHeading" Grid.Column="1" HorizontalAlignment="Right" />
           <TextBlock x:Name="IncludedHeading" Grid.Column="2" HorizontalAlignment="Center" />
         </Grid>
         <ItemsControl x:Name="Sensors">
@@ -54,7 +54,7 @@
                   <TextBlock Text="{x:Bind Device}" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{x:Bind Device}" />
                   <TextBlock Text="{x:Bind Sensor}" FontSize="12" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{x:Bind Sensor}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                 </StackPanel>
-                <TextBlock Grid.Column="1" Text="{x:Bind Wattage}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="1" Text="{x:Bind Value}" HorizontalAlignment="Right" VerticalAlignment="Center" />
                 <TextBlock Grid.Column="2" Text="{x:Bind Included}" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
               </Grid>
             </DataTemplate>
