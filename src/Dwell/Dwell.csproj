@@ -12,7 +12,7 @@
     <SelfContained>true</SelfContained>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets/Dwell.ico</ApplicationIcon>
-    <Version>0.6.1</Version>
+    <Version>0.6.2</Version>
     <DefaultLanguage>ru-RU</DefaultLanguage>
     <PublishTrimmed>false</PublishTrimmed>
     <DebugType>embedded</DebugType>

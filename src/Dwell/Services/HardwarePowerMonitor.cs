@@ -16,6 +16,7 @@ internal sealed class HardwarePowerMonitor : IDisposable
     private readonly WindowsEnergyMeters _energyMeters = new();
     private Computer? _computer;
     private (int Index, string Name)[]? _disks;
+    private readonly Dictionary<string, PowerDeviceKind> _radeons = new();
     private long _retryAt;
     private bool _disposed;
 
@@ -70,7 +71,7 @@ internal sealed class HardwarePowerMonitor : IDisposable
         }
     }
 
-    private static void ReadDevice(IHardware hardware, List<PowerDevice> devices, bool includeWithoutSensors)
+    private void ReadDevice(IHardware hardware, List<PowerDevice> devices, bool includeWithoutSensors)
     {
         var id = hardware.Identifier.ToString();
         var kind = hardware.HardwareType switch
@@ -78,7 +79,7 @@ internal sealed class HardwarePowerMonitor : IDisposable
             HardwareType.Cpu when id.StartsWith("/amdcpu/", StringComparison.Ordinal) => PowerDeviceKind.AmdCpu,
             HardwareType.Cpu => PowerDeviceKind.Cpu,
             HardwareType.GpuIntel when id.StartsWith("/gpu-intel-integrated/", StringComparison.Ordinal) => PowerDeviceKind.IntegratedGpu,
-            HardwareType.GpuAmd => PowerDeviceKind.AmdGpu,
+            HardwareType.GpuAmd => RadeonKind(id),
             HardwareType.GpuNvidia or HardwareType.GpuIntel => PowerDeviceKind.Gpu,
             HardwareType.Psu => PowerDeviceKind.Supply,
             HardwareType.Memory => PowerDeviceKind.Memory,
@@ -102,12 +103,50 @@ internal sealed class HardwarePowerMonitor : IDisposable
             ReadDevice(child, devices, includeWithoutSensors: false);
     }
 
+    private PowerDeviceKind RadeonKind(string id)
+    {
+        if (_radeons.TryGetValue(id, out var kind)) return kind;
+        kind = PowerDeviceKind.AmdGpu;
+        if (int.TryParse(id.Split('/')[^1], out var index))
+        {
+            try
+            {
+                if (ADL2_Main_Control_Create(Allocate, 1, out var context) == 0)
+                {
+                    try
+                    {
+                        if (ADL2_Adapter_ASICFamilyType_Get(context, index, out var flags, out var valid) == 0)
+                        {
+                            if ((flags & valid & 2) != 0) kind = PowerDeviceKind.IntegratedGpu;
+                            else if ((flags & valid & 1) != 0) kind = PowerDeviceKind.Gpu;
+                        }
+                    }
+                    finally { ADL2_Main_Control_Destroy(context); }
+                }
+            }
+            catch (Exception ex) when (ex is DllNotFoundException or EntryPointNotFoundException) { }
+        }
+        return _radeons[id] = kind;
+    }
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    private delegate IntPtr AdlAllocate(int size);
+    private static readonly AdlAllocate Allocate = Marshal.AllocHGlobal;
+    [DllImport("atiadlxx.dll", CallingConvention = CallingConvention.Cdecl)]
+    private static extern int ADL2_Main_Control_Create(AdlAllocate allocate, int connected, out IntPtr context);
+    [DllImport("atiadlxx.dll", CallingConvention = CallingConvention.Cdecl)]
+    private static extern int ADL2_Adapter_ASICFamilyType_Get(IntPtr context, int index, out int types, out int valid);
+    [DllImport("atiadlxx.dll", CallingConvention = CallingConvention.Cdecl)]
+    private static extern int ADL2_Main_Control_Destroy(IntPtr context);
+
     private static void AddWindowsReadings(List<PowerDevice> devices, Dictionary<int, int> cpuIndices, List<EnergyChannel> readings)
     {
         var cpuReadings = new Dictionary<int, List<PowerSensor>>();
         foreach (var reading in readings.OrderByDescending(x => x.Watts.HasValue))
         {
             var parts = reading.Name.Split('_');
+            var coreChannel = parts is ["RAPL", _, var core, "CORE"] && core.StartsWith("Core", StringComparison.Ordinal);
+            if (coreChannel) parts = [parts[0], parts[1], parts[2]];
             if (parts is not ["RAPL", var packageName, var domain] ||
                 !packageName.StartsWith("Package", StringComparison.Ordinal) ||
                 !int.TryParse(packageName.AsSpan(7), out var package))
@@ -131,6 +170,7 @@ internal sealed class HardwarePowerMonitor : IDisposable
                 "PP0" => "CPU Cores",
                 "PP1" => "CPU Graphics",
                 "PSYS" => "CPU Platform",
+                _ when coreChannel => domain + " (Windows)",
                 _ => reading.Name
             };
             if (!cpuReadings.TryGetValue(package, out var sensors)) cpuReadings[package] = sensors = [];

@@ -326,7 +326,7 @@
   <data name="PowerIncluded" xml:space="preserve"><value>Included</value></data>
   <data name="PowerYes" xml:space="preserve"><value>Yes</value></data>
   <data name="PowerNow" xml:space="preserve"><value>Now</value></data>
-  <data name="PowerWindow" xml:space="preserve"><value>Last 5 minutes</value></data>
+  <data name="PowerWindow" xml:space="preserve"><value>Last 24 hours, average power per 15 minutes</value></data>
   <data name="PowerChartSource" xml:space="preserve"><value>Chart reading</value></data>
   <data name="PowerChartTotal" xml:space="preserve"><value>Total power</value></data>
   <data name="PowerSourceNone" xml:space="preserve"><value>PC power usage</value></data>

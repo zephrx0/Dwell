@@ -86,6 +86,8 @@ public sealed partial class MainWindow : Window
             else if (LimitsPage.Visibility == Visibility.Visible) await Rules.RefreshAsync();
         };
         _tracker.Start(NativeMethods.IsSessionLocked());
+        PowerHost.Content = _powerView = new Views.PowerView();
+        _powerView.BeginRecording();
         _reminders.Start();
         _updateTimer.Tick += async (_, _) => await CheckForUpdatesAsync();
         _updateTimer.Start();
@@ -200,8 +202,7 @@ public sealed partial class MainWindow : Window
 
     private void ShowPower()
     {
-        if (_powerView is null) PowerHost.Content = _powerView = new Views.PowerView();
-        _powerView.Start();
+        _powerView?.Start();
     }
 
     public void Hide()

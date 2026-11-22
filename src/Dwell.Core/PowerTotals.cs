@@ -30,7 +30,7 @@ public static class PowerTotals
         var components = devices.Select(x => x.Kind switch
         {
             PowerDeviceKind.Gpu => FindGpu(x),
-            PowerDeviceKind.AmdGpu when !includesAmdPackage => FindGpu(x),
+            PowerDeviceKind.AmdGpu when !includesAmdPackage || System.Text.RegularExpressions.Regex.IsMatch(x.Name, @"\bRadeon(?:\(TM\))?\s+(?:RX\s+\d|PRO\s+W\d)", System.Text.RegularExpressions.RegexOptions.IgnoreCase) => FindGpu(x),
             PowerDeviceKind.IntegratedGpu when !includesCpuPackage => FindGpu(x),
             PowerDeviceKind.Independent or PowerDeviceKind.RaplMemory => FindIndependent(x),
             PowerDeviceKind.Memory when !includesRaplMemory => FindIndependent(x),

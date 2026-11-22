@@ -53,6 +53,18 @@ public sealed class PowerTotalsTests
     }
 
     [Fact]
+    public void RyzenPackageAndDiscreteRadeonBothContribute()
+    {
+        var total = PowerTotals.Calculate([
+            new("Ryzen 7 5800X", PowerDeviceKind.AmdCpu, [new("cpu", "CPU Package", 44.1), new("core", "Core0 (Windows)", 5.4)]),
+            new("AMD Radeon RX 9070 XT", PowerDeviceKind.AmdGpu, [new("gpu", "GPU Package", 50)]),
+            new("AMD Radeon Graphics", PowerDeviceKind.AmdGpu, [new("apu", "GPU Package", 3)])
+        ], null);
+        Assert.Equal(94.1, total.Watts);
+        Assert.Equal(["cpu", "gpu"], total.SensorIds);
+    }
+
+    [Fact]
     public void BatteryDischargeTakesPrecedenceOverAnIncompleteSupply()
     {
         var devices = new PowerDevice[]
