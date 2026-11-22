@@ -7,7 +7,7 @@ AppPublisherURL=https://github.com/zephrx0/Dwell
 DefaultDirName={localappdata}\Programs\Dwell
 DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
-ArchitecturesAllowed=x64os
+ArchitecturesAllowed=x64compatible
 MinVersion=10.0.17763
 SetupIconFile=..\src\Dwell\Assets\Dwell.ico
 UninstallDisplayIcon={app}\Dwell.exe
@@ -63,12 +63,7 @@ var
   ProcessHandle: THandle;
 begin
   Result := '';
-  if not IsDwellUpdate then
-  begin
-    if (not WizardSilent) and (FindWindowByWindowName('Dwell') <> 0) then
-      Result := CustomMessage('DwellWaitError');
-    exit;
-  end;
+  if not IsDwellUpdate then exit;
   ProcessHandle := OpenProcessForWait($00100000, False, UpdateProcessId);
   if ProcessHandle = 0 then exit;
   try
@@ -77,6 +72,13 @@ begin
   finally
     CloseProcessHandle(ProcessHandle);
   end;
+end;
+
+function InitializeUninstall: Boolean;
+begin
+  Result := not CheckForMutexes('Local\Dwell.Uninstall');
+  if not Result then
+    SuppressibleMsgBox(CustomMessage('DwellWaitError'), mbError, MB_OK, IDOK);
 end;
 
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);

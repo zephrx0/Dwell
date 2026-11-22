@@ -39,6 +39,7 @@ public sealed partial class AppUsageViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(CategoryMenuLabel))]
     public partial int CategoryIndex { get; set; }
     public event Action? CategoryChanged;
+    public event Action? CategorySaveFailed;
     public event Action<string>? HistoryRequested;
     [RelayCommand] private void ViewHistory() => HistoryRequested?.Invoke(Name);
     [RelayCommand] private void SetCategory(string value) { if (int.TryParse(value, out var category) && category is >= 0 and <= 4) CategoryIndex = category; }
@@ -67,8 +68,18 @@ public sealed partial class AppUsageViewModel : ObservableObject
     partial void OnCategoryIndexChanged(int value)
     {
         if (_initializing || value < 0 || value > 4) return;
-        _repository.UpdateCategory(_appIds, (AppCategory)value);
-        CategoryChanged?.Invoke();
+        try
+        {
+            _repository.UpdateCategory(_appIds, (AppCategory)value);
+            CategoryChanged?.Invoke();
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or Microsoft.Data.Sqlite.SqliteException)
+        {
+            _initializing = true;
+            CategoryIndex = (int)App.Category;
+            _initializing = false;
+            CategorySaveFailed?.Invoke();
+        }
     }
 }
 
@@ -238,6 +249,7 @@ public sealed partial class OverviewViewModel(TrackingService tracker, AppReposi
                     {
                         row = new(group.Variants, screen, background, peak, repository) { IsExpanded = previousRow?.IsExpanded ?? false };
                         row.CategoryChanged += () => _ = RefreshAsync();
+                        row.CategorySaveFailed += () => Error = Strings.Get("StorageError");
                         row.HistoryRequested += name => AppHistoryRequested?.Invoke(name, _date, IsWeek);
                     }
                     _allApps.Add(row);

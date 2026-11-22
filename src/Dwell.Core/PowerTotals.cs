@@ -13,14 +13,14 @@ public sealed record PowerTotal(PowerSource Source, double? Watts, string[] Sens
 
 public static class PowerTotals
 {
-    public static PowerTotal Calculate(IReadOnlyList<PowerDevice> devices, double? batteryWatts)
+    public static PowerTotal Calculate(IReadOnlyList<PowerDevice> devices, double? batteryWatts, bool onBattery = true)
     {
         var supplies = devices.Where(x => x.Kind == PowerDeviceKind.Supply).ToArray();
         var output = supplies.Select(x => Find(x, "PSU Out", "Total Output", "Total watts")).ToArray();
         if (output.Length > 0 && output.All(x => x is not null))
             return Sum(PowerSource.SupplyOutput, output.OfType<PowerSensor>());
 
-        if (batteryWatts is > 0 && double.IsFinite(batteryWatts.Value))
+        if (onBattery && batteryWatts is > 0 && double.IsFinite(batteryWatts.Value))
             return new(PowerSource.Battery, batteryWatts, []);
 
         var cpu = devices.Where(x => x.Kind is PowerDeviceKind.Cpu or PowerDeviceKind.AmdCpu)
@@ -31,7 +31,7 @@ public static class PowerTotals
         var components = devices.Select(x => x.Kind switch
         {
             PowerDeviceKind.Gpu => FindGpu(x),
-            PowerDeviceKind.AmdGpu when !includesAmdPackage || System.Text.RegularExpressions.Regex.IsMatch(x.Name, @"\bRadeon(?:\(TM\))?\s+(?:RX\s+\d|PRO\s+W\d)", System.Text.RegularExpressions.RegexOptions.IgnoreCase) => FindGpu(x),
+            PowerDeviceKind.AmdGpu when !includesAmdPackage || System.Text.RegularExpressions.Regex.IsMatch(x.Name, @"\bRadeon(?:\(TM\))?\s+(?:RX\s+\d|PRO\s+WX?\s*\d|VII\b)", System.Text.RegularExpressions.RegexOptions.IgnoreCase) => FindGpu(x),
             PowerDeviceKind.IntegratedGpu when !includesCpuPackage => FindGpu(x),
             PowerDeviceKind.Independent or PowerDeviceKind.RaplMemory => FindIndependent(x),
             PowerDeviceKind.Memory when !includesRaplMemory => FindIndependent(x),

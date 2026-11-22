@@ -30,7 +30,7 @@ public sealed class SessionAccumulator
             return;
         }
 
-        var continuous = _lastSample is { } previous && now - previous <= MaximumGap;
+        var continuous = _lastSample is { } previous && (now - previous <= MaximumGap || !paused && _current?.AppId == appId && now - previous <= TimeSpan.FromSeconds(30));
         if (_current is not null)
         {
             if (continuous) _current = _current with { End = now };

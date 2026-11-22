@@ -16,6 +16,7 @@ public sealed class BackgroundTracker(AppRepository repository)
     private readonly int _sessionId = CurrentSessionId();
     private Dictionary<int, (long Start, double Cpu)> _previous = [];
     private long _previousTick;
+    private static readonly uint LogicalProcessorCount = Math.Max(1, NativeMethods.GetActiveProcessorCount(ushort.MaxValue));
     private BackgroundResource[] _resources = [];
     private long _scanVersion;
     private long _storedScanVersion;
@@ -54,7 +55,7 @@ public sealed class BackgroundTracker(AppRepository repository)
                     samples[process.Id] = (start, cpu);
                     var previous = _previous.GetValueOrDefault(process.Id);
                     var valid = previous.Start == start && elapsed is > 0 and <= 10 && cpu >= previous.Cpu;
-                    var delta = valid ? (cpu - previous.Cpu) / elapsed / Environment.ProcessorCount * 100 : 0;
+                    var delta = valid ? (cpu - previous.Cpu) / elapsed / LogicalProcessorCount * 100 : 0;
                     var total = usage.GetValueOrDefault(key);
                     total.Ids ??= [];
                     total.Ids.Add(app.Id);

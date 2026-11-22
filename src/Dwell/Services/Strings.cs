@@ -14,7 +14,7 @@ public static class Strings
     public static void SetLanguage(int option)
     {
         LanguageOption = option;
-        var language = option switch { 1 => "ru-RU", 2 => "en-US", _ => CultureInfo.GetCultureInfo(GetUserDefaultUILanguage()).Name };
+        var language = option switch { 1 => "ru-RU", 2 => "en-US", _ => SystemLanguage() };
         Culture = CultureInfo.GetCultureInfo(language.StartsWith("ru", StringComparison.OrdinalIgnoreCase) ? "ru-RU" : "en-US");
         Microsoft.Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride = Culture.Name;
         CultureInfo.DefaultThreadCurrentUICulture = Culture;
@@ -24,10 +24,16 @@ public static class Strings
     public static bool FollowSystemLanguage()
     {
         if (LanguageOption != 0) return false;
-        var system = CultureInfo.GetCultureInfo(GetUserDefaultUILanguage()).Name.StartsWith("ru", StringComparison.OrdinalIgnoreCase) ? "ru-RU" : "en-US";
+        var system = SystemLanguage().StartsWith("ru", StringComparison.OrdinalIgnoreCase) ? "ru-RU" : "en-US";
         if (system == Culture.Name) return false;
         SetLanguage(0);
         return true;
+    }
+
+    private static string SystemLanguage()
+    {
+        try { return CultureInfo.GetCultureInfo(GetUserDefaultUILanguage()).Name; }
+        catch (CultureNotFoundException) { return CultureInfo.InstalledUICulture.Name; }
     }
 
     public static string Get(string key) => (_loader ??= new ResourceLoader()).GetString(key.Replace('.', '/'));

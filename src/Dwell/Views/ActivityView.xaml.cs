@@ -11,9 +11,16 @@ public sealed partial class ActivityView : UserControl
     public ActivityView()
     {
         InitializeComponent();
-        DatePicker.MaxDate = DateTimeOffset.Now;
+        RefreshDateRange();
         Localize();
     }
+    internal void RefreshDateRange()
+    {
+        var today = DateTime.Today;
+        if (DatePicker.MaxDate.LocalDateTime.Date != today)
+            DatePicker.MaxDate = new DateTimeOffset(today);
+    }
+
     public void Localize()
     {
         Heading.Text = Strings.Get("ActivityTitle"); ExportButton.Content = Strings.Get("ExportCsv");

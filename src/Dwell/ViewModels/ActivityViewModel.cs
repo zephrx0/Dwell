@@ -19,6 +19,15 @@ public sealed partial class ActivityViewModel(TrackingService tracker) : Observa
     private ActivityEntry[] _entries = [];
     private bool _loading;
     private bool _reload;
+    private DateTime _lastToday = DateTime.Today;
+
+    internal void FollowToday()
+    {
+        var previous = _lastToday;
+        _lastToday = DateTime.Today;
+        if (previous != _lastToday && Date?.LocalDateTime.Date == previous)
+            Date = new DateTimeOffset(_lastToday);
+    }
     [ObservableProperty] public partial DateTimeOffset? Date { get; set; } = DateTimeOffset.Now;
     [ObservableProperty] public partial int PeriodIndex { get; set; } = 1;
     [ObservableProperty] public partial string Query { get; set; } = "";
@@ -77,14 +86,15 @@ public sealed partial class ActivityViewModel(TrackingService tracker) : Observa
     public async Task ExportAsync(string path)
     {
         var rows = Rows.ToArray();
+        var separator = Strings.Culture.TextInfo.ListSeparator;
         var headers = new[] { Strings.Get("CsvApp"), Strings.Get("CsvCategory"), Strings.Get("CsvStart"), Strings.Get("CsvEnd"), Strings.Get("CsvSeconds") };
         static string Escape(string value)
         {
             if (value.Length > 0 && "=+-@\t\r".Contains(value[0])) value = "'" + value;
             return "\"" + value.Replace("\"", "\"\"") + "\"";
         }
-        var lines = new List<string> { string.Join(",", headers.Select(Escape)) };
-        lines.AddRange(rows.Select(x => string.Join(",", new[] { x.Name, x.Category, x.Entry.Start.ToLocalTime().ToString("O", CultureInfo.InvariantCulture), x.Entry.End.ToLocalTime().ToString("O", CultureInfo.InvariantCulture), x.Entry.Seconds.ToString("0.###", CultureInfo.InvariantCulture) }.Select(Escape))));
+        var lines = new List<string> { string.Join(separator, headers.Select(Escape)) };
+        lines.AddRange(rows.Select(x => string.Join(separator, new[] { x.Name, x.Category, x.Entry.Start.ToLocalTime().ToString("O", CultureInfo.InvariantCulture), x.Entry.End.ToLocalTime().ToString("O", CultureInfo.InvariantCulture), x.Entry.Seconds.ToString("0.###", Strings.Culture) }.Select(Escape))));
         await File.WriteAllTextAsync(path, string.Join("\r\n", lines) + "\r\n", new UTF8Encoding(true));
     }
 }

@@ -59,7 +59,7 @@ internal sealed class HardwarePowerMonitor : IDisposable
                     };
             }
             var battery = ReadBattery();
-            return new(PowerTotals.Calculate(devices, battery), devices, battery, diskActivity);
+            return new(PowerTotals.Calculate(devices, battery, battery is not null && PowerManager.PowerSupplyStatus == PowerSupplyStatus.NotPresent), devices, battery, diskActivity);
         }
     }
 
@@ -71,15 +71,16 @@ internal sealed class HardwarePowerMonitor : IDisposable
         {
             IsCpuEnabled = true, IsGpuEnabled = true, IsMemoryEnabled = true,
             IsMotherboardEnabled = true, IsStorageEnabled = true, IsPsuEnabled = true,
-            IsBatteryEnabled = true, IsControllerEnabled = true, IsPowerMonitorEnabled = true
+            IsBatteryEnabled = true, IsPowerMonitorEnabled = true
         };
         try
         {
             computer.Open();
             return _computer = computer;
         }
-        catch (Exception ex) when (SensorError(ex))
+        catch (Exception ex)
         {
+            System.Diagnostics.Trace.WriteLine(ex);
             _retryAt = Environment.TickCount64 + 30_000;
             CloseComputer(computer);
             return null;
@@ -114,7 +115,7 @@ internal sealed class HardwarePowerMonitor : IDisposable
                 !sensors.Any(x => x.Kind == PowerSensorKind.HardwareCpuCore && x.Watts > 0))
                 sensors = sensors.Select(x => x.Watts == 0 ? x with { Watts = null } : x).ToArray();
         }
-        catch (Exception ex) when (SensorError(ex)) { }
+        catch (Exception ex) { System.Diagnostics.Trace.WriteLine(ex); }
 
         if (sensors.Length > 0 || (includeWithoutSensors && id != "/vram"))
             devices.Add(new(hardware.Name, kind, sensors));
@@ -250,7 +251,7 @@ internal sealed class HardwarePowerMonitor : IDisposable
     private static void CloseComputer(Computer computer)
     {
         try { computer.Close(); }
-        catch (Exception ex) when (SensorError(ex)) { }
+        catch (Exception ex) { System.Diagnostics.Trace.WriteLine(ex); }
     }
 
     public void Dispose()

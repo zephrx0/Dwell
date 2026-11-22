@@ -5,6 +5,20 @@ namespace Dwell.Core.Tests;
 
 public sealed class PowerTotalsTests
 {
+    [Theory]
+    [InlineData("AMD Radeon Pro WX 7100")]
+    [InlineData("AMD Radeon VII")]
+    public void OlderDiscreteRadeonCountsBesideRyzenWhileConnectedToPower(string gpuName)
+    {
+        var total = PowerTotals.Calculate([
+            new("Ryzen", PowerDeviceKind.AmdCpu, [new("cpu", "CPU Package", 40)]),
+            new(gpuName, PowerDeviceKind.AmdGpu, [new("gpu", "GPU Package", 75)])
+        ], 15, onBattery: false);
+
+        Assert.Equal(PowerSource.Components, total.Source);
+        Assert.Equal(115, total.Watts);
+    }
+
     [Fact]
     public void SupplyOutputIsUsedOnceWithoutItsRailsOrComponents()
     {

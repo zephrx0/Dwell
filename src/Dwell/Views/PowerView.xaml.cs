@@ -74,7 +74,13 @@ public sealed partial class PowerView : UserControl
         _reading = true;
         try
         {
-            var sample = await Task.Run(_monitor.Read);
+            HardwarePowerSample sample;
+            try { sample = await Task.Run(_monitor.Read); }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine(ex);
+                return;
+            }
             if (!_timer.IsEnabled) return;
             _sample = sample;
 

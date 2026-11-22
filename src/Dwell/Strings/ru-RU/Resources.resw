@@ -319,6 +319,7 @@
   <data name="ExcludedAppsHeading" xml:space="preserve"><value>Скрытые приложения</value></data>
   <data name="ExcludedAppsEmpty" xml:space="preserve"><value>Чтобы скрыть приложение из статистики, раскройте его строку в обзоре.</value></data>
   <data name="RestoreToStatistics" xml:space="preserve"><value>Вернуть в статистику</value></data>
+  <data name="StorageStartupError" xml:space="preserve"><value>Не удалось открыть настройки или историю Dwell. Проверьте свободное место и доступ к папке. Если база повреждена, сохраните копию папки перед восстановлением.</value></data>
   <data name="PowerPageTitle" xml:space="preserve"><value>Энергопотребление</value></data>
   <data name="PowerSensors" xml:space="preserve"><value>Показатели устройств</value></data>
   <data name="PowerDevice" xml:space="preserve"><value>Устройство и показатель</value></data>

@@ -54,7 +54,9 @@ public sealed partial class MainWindow : Window
         _windowProc = WindowProc;
         NativeMethods.SetWindowSubclass(_hwnd, _windowProc, 1, 0);
         NativeMethods.WTSRegisterSessionNotification(_hwnd, 0);
-        AppWindow.Resize(new SizeInt32(1140, 720));
+        var scale = NativeMethods.GetDpiForWindow(_hwnd) / 96d;
+        var workArea = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary).WorkArea;
+        AppWindow.Resize(new SizeInt32(Math.Min((int)(1140 * scale), workArea.Width), Math.Min((int)(720 * scale), workArea.Height)));
         AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "Assets", "Dwell.ico"));
         Settings.ThemeChanged += ApplyTheme;
         Settings.LanguageChanged += ApplyLanguage;
@@ -81,6 +83,7 @@ public sealed partial class MainWindow : Window
         {
             if (!_visible) return;
             UpdatePauseState();
+            if (HistoryPage.Visibility == Visibility.Visible) RefreshActivityDate();
             if (IsEditing()) return;
             if (OverviewScroll.Visibility == Visibility.Visible) await Overview.RefreshAsync();
             else if (LimitsPage.Visibility == Visibility.Visible) await Rules.RefreshAsync();
@@ -187,7 +190,7 @@ public sealed partial class MainWindow : Window
         Activate();
         NativeMethods.SetForegroundWindow(_hwnd);
         if (OverviewScroll.Visibility == Visibility.Visible) await Overview.RefreshAsync();
-        else if (HistoryPage.Visibility == Visibility.Visible) await Activity.RefreshAsync();
+        else if (HistoryPage.Visibility == Visibility.Visible) { RefreshActivityDate(); await Activity.RefreshAsync(); }
         else if (LimitsPage.Visibility == Visibility.Visible) await Rules.RefreshAsync();
         else if (ExcludedAppsScroll.Visibility == Visibility.Visible) ExcludedApps.Refresh();
         else if (PowerHost.Visibility == Visibility.Visible) ShowPower();
@@ -228,10 +231,16 @@ public sealed partial class MainWindow : Window
         LimitsPage.Visibility = page == "rules" ? Visibility.Visible : Visibility.Collapsed;
         if (!_visible) return;
         if (page == "overview") { EnsureChart(); await Overview.RefreshAsync(); }
-        else if (page == "activity") await Activity.RefreshAsync();
+        else if (page == "activity") { RefreshActivityDate(); await Activity.RefreshAsync(); }
         else if (page == "rules") await Rules.RefreshAsync();
         else if (page == "excluded") ExcludedApps.Refresh();
         else if (page == "power") ShowPower();
+    }
+
+    private void RefreshActivityDate()
+    {
+        HistoryPage.RefreshDateRange();
+        Activity.FollowToday();
     }
 
     private bool IsEditing()
@@ -321,8 +330,16 @@ public sealed partial class MainWindow : Window
         else if (message == 0x0011) { _tracker.SetLocked(true); return 1; } // end session: checkpoint synchronously
         else if (message == 0x0016)
         {
-            if (wParam != 0) { _exiting = true; TrayIcon.Dispose(); }
-            else _tracker.SetLocked(NativeMethods.IsSessionLocked());
+            if (wParam != 0 && !_exiting)
+            {
+                _exiting = true;
+                DispatcherQueue.TryEnqueue(async () =>
+                {
+                    try { await _tracker.StopAsync(); }
+                    finally { Close(); }
+                });
+            }
+            else if (wParam == 0) _tracker.SetLocked(NativeMethods.IsSessionLocked());
         }
         else if (message == 0x0005 && wParam == 1) DispatcherQueue.TryEnqueue(Hide);
         return NativeMethods.DefSubclassProc(hwnd, message, wParam, lParam);
@@ -345,7 +362,8 @@ public sealed partial class MainWindow : Window
             catch { _exitInProgress = false; throw; }
         }
         await _tracker.StopAsync();
-        _exiting = true; Close(); return true;
+        if (!_exiting) { _exiting = true; Close(); }
+        return true;
     }
 
     private enum UpdateState { Ready, Checking, Current, Downloading, Installing, CheckFailed, InstallFailed }

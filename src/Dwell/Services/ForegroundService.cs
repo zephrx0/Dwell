@@ -14,6 +14,8 @@ public sealed class ForegroundService(AppRepository repository)
     private uint _lastPid;
     private AppRecord? _lastApp;
     private long _lastLookup;
+    private long _lastGamepadInput = long.MinValue;
+    private readonly uint?[] _gamepadPackets = new uint?[4];
 
     internal static string? ProcessPath(uint pid)
     {
@@ -31,15 +33,49 @@ public sealed class ForegroundService(AppRepository repository)
     {
         var window = NativeMethods.GetForegroundWindow();
         NativeMethods.GetWindowThreadProcessId(window, out var pid);
-        return window == _lastWindow && pid == _lastPid && _lastApp is not null ? _lastApp.Exe : ProcessPath(pid);
+        return window == _lastWindow && pid == _lastPid && _lastApp is not null ? _lastApp.Exe : ApplicationPath(window, pid);
     }
 
-    public static TimeSpan IdleTime()
+    public TimeSpan IdleTime()
     {
+        var now = Environment.TickCount64;
+        for (uint index = 0; index < _gamepadPackets.Length; index++)
+        {
+            if (NativeMethods.XInputGetState(index, out var state) != 0)
+            {
+                _gamepadPackets[index] = null;
+                continue;
+            }
+            if (_gamepadPackets[index] is { } previous && previous != state.Packet)
+                _lastGamepadInput = now;
+            _gamepadPackets[index] = state.Packet;
+        }
         var input = new NativeMethods.LastInputInfo { Size = (uint)Marshal.SizeOf<NativeMethods.LastInputInfo>() };
-        return NativeMethods.GetLastInputInfo(ref input)
-            ? IdlePolicy.Elapsed(unchecked((uint)Environment.TickCount64), input.Time)
+        var idle = NativeMethods.GetLastInputInfo(ref input)
+            ? IdlePolicy.Elapsed(unchecked((uint)now), input.Time)
             : TimeSpan.MaxValue;
+        return _lastGamepadInput == long.MinValue ? idle :
+            TimeSpan.FromMilliseconds(Math.Min(idle.TotalMilliseconds, now - _lastGamepadInput));
+    }
+
+    private static string? ApplicationPath(nint window, uint pid)
+    {
+        if (window == 0 || pid == 0) return null;
+        var path = ProcessPath(pid);
+        if (!string.Equals(Path.GetFileName(path), "ApplicationFrameHost.exe", StringComparison.OrdinalIgnoreCase))
+            return path;
+        string? childPath = null;
+        var className = new StringBuilder(64);
+        NativeMethods.EnumChildWindows(window, (child, _) =>
+        {
+            NativeMethods.GetClassName(child, className, className.Capacity);
+            if (!string.Equals(className.ToString(), "Windows.UI.Core.CoreWindow", StringComparison.Ordinal)) return true;
+            NativeMethods.GetWindowThreadProcessId(child, out var childPid);
+            if (childPid == pid || childPid == 0) return true;
+            childPath = ProcessPath(childPid);
+            return childPath is null;
+        }, 0);
+        return childPath;
     }
 
     public async Task<AppRecord?> GetAppAsync()
@@ -47,21 +83,11 @@ public sealed class ForegroundService(AppRepository repository)
         var window = NativeMethods.GetForegroundWindow();
         NativeMethods.GetWindowThreadProcessId(window, out var pid);
         if (window == 0 || pid == 0) return null;
-        if (window == _lastWindow && pid == _lastPid && Environment.TickCount64 - _lastLookup < 30000) return _lastApp;
+        if (window == _lastWindow && pid == _lastPid && Environment.TickCount64 - _lastLookup < (_lastApp is null ? 1000 : 30000)) return _lastApp;
         _lastWindow = window; _lastPid = pid; _lastLookup = Environment.TickCount64;
         _lastApp = null;
-        var process = NativeMethods.OpenProcess(0x1000, false, pid);
-        if (process == 0) return null;
-        string path;
-        try
-        {
-            var buffer = new StringBuilder(32768);
-            uint length = (uint)buffer.Capacity;
-            if (!NativeMethods.QueryFullProcessImageName(process, 0, buffer, ref length)) return null;
-            path = buffer.ToString();
-        }
-        finally { NativeMethods.CloseHandle(process); }
-        if (!ApplicationPolicy.IsUserApplication(path)) return null;
+        var path = ApplicationPath(window, pid);
+        if (path is null || !ApplicationPolicy.IsUserApplication(path)) return null;
         if (repository.Find(path) is { } known) return _lastApp = known;
         var name = Path.GetFileNameWithoutExtension(path);
         try { name = FileVersionInfo.GetVersionInfo(path).FileDescription is { Length: > 0 } description ? description : name; }

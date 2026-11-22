@@ -32,7 +32,8 @@ public static class ApplicationPolicy
     }
 
     public static string Identity(string exe, string name) =>
-        Path.GetFileName(exe).ToUpperInvariant() + "|" + DisplayName(name).ToUpperInvariant();
+        (Path.GetFileName(exe).ToUpperInvariant() is "JAVA.EXE" or "JAVAW.EXE" ? exe.ToUpperInvariant() : Path.GetFileName(exe).ToUpperInvariant())
+        + "|" + DisplayName(name).ToUpperInvariant();
 
     public static string DisplayName(string name)
     {

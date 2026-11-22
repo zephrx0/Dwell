@@ -126,6 +126,9 @@
   <data name="StorageError" xml:space="preserve">
     <value>Could not save data. Check free space.</value>
   </data>
+  <data name="StorageStartupError" xml:space="preserve">
+    <value>Dwell could not open its settings or history. Check free space and folder permissions. If the database is damaged, keep a copy of the folder before attempting recovery.</value>
+  </data>
   <data name="SettingsError" xml:space="preserve">
     <value>Could not save settings.</value>
   </data>

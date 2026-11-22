@@ -54,8 +54,16 @@ internal static class PowerUsageHistory
             command.CommandText = "SELECT data FROM samples WHERE time < $now ORDER BY time";
             command.Parameters.AddWithValue("$now", reading.At);
             using (var reader = command.ExecuteReader())
+            {
                 while (reader.Read())
-                    if (JsonSerializer.Deserialize<PowerReading>(reader.GetString(0)) is { } point) previous.Add(point);
+                {
+                    try
+                    {
+                        if (JsonSerializer.Deserialize<PowerReading>(reader.GetString(0)) is { } point) previous.Add(point);
+                    }
+                    catch (JsonException ex) { System.Diagnostics.Trace.WriteLine(ex); }
+                }
+            }
             command.Parameters.Clear();
             command.CommandText = "SELECT id, label FROM sensor_labels";
             using var labelReader = command.ExecuteReader();

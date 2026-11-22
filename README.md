@@ -8,7 +8,7 @@ Dwell показывает, на что уходит время за компь�
 
 ## Установка
 
-Скачай и запусти установщик. Подойдёт Windows 10 версии 1809 или новее, а также Windows 11. Установщик рассчитан на x64 и уже включает .NET. [Скачать Dwell-Setup.exe](https://github.com/zephrx0/Dwell/releases/latest/download/Dwell-Setup.exe)
+Скачай и запусти установщик. Подойдёт Windows 10 версии 1809 или новее на x64, а также Windows 11 на x64 или ARM64 с эмуляцией x64. Установщик уже включает .NET. [Скачать Dwell-Setup.exe](https://github.com/zephrx0/Dwell/releases/latest/download/Dwell-Setup.exe)
 
 Когда выйдет новая версия, Dwell покажет уведомление Windows. Установить обновление можно в разделе «Настройки → Обновления». [История релизов](https://github.com/zephrx0/Dwell/releases)
 
@@ -36,7 +36,7 @@ Open **Power usage** to see the last 24 hours in watts, averaged over 15-minute 
 
 You can also plot disk activity from Windows counters. For drives with published power figures, Dwell estimates consumption from read, write and idle time. The ≈ symbol marks estimates. The estimate assumes the drive stays powered on while idle.
 
-Run the installer on an x64 PC with Windows 10 version 1809 or later, or Windows 11. The .NET runtime is included. Dwell sends a Windows notification when an update is available. You can install it from **Settings → Updates**. [Download Dwell-Setup.exe](https://github.com/zephrx0/Dwell/releases/latest/download/Dwell-Setup.exe)
+Run the installer on x64 Windows 10 version 1809 or later, or on Windows 11 with x64 or ARM64 with x64 emulation. The .NET runtime is included. Dwell sends a Windows notification when an update is available. You can install it from **Settings → Updates**. [Download Dwell-Setup.exe](https://github.com/zephrx0/Dwell/releases/latest/download/Dwell-Setup.exe)
 
 ## Build
 

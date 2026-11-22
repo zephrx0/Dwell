@@ -35,6 +35,15 @@ public sealed class TrackingTests
     }
 
     [Fact]
+    public void DelayedSampleKeepsTheSameForegroundSession()
+    {
+        var tracker = new SessionAccumulator();
+        tracker.Sample(1, Start);
+        tracker.Sample(1, Start.AddSeconds(8));
+        Assert.Equal(Start.AddSeconds(8), Assert.Single(tracker.Snapshot()).End);
+    }
+
+    [Fact]
     public void SleepOrClockJumpDoesNotCountUnobservedTime()
     {
         var tracker = new SessionAccumulator();
