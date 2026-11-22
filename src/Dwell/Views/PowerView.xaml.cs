@@ -1,3 +1,6 @@
+using System.Collections.ObjectModel;
+using System.Globalization;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Dwell.Core;
 using Dwell.Services;
 using LiveChartsCore;
@@ -11,7 +14,21 @@ using SkiaSharp;
 
 namespace Dwell.Views;
 
-public sealed record PowerSensorRow(string Device, string Sensor, string Wattage, string Included);
+public sealed record PowerSensorRow(string Device, string Sensor, string Wattage, string Included)
+{
+    public Visibility DeviceVisibility => Device.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
+}
+
+public sealed partial class PowerProcessorRow(string name) : ObservableObject
+{
+    public string Name { get; } = name;
+    [ObservableProperty] public partial string Sensor { get; set; } = "";
+    [ObservableProperty] public partial string Wattage { get; set; } = "";
+    [ObservableProperty] public partial string Included { get; set; } = "";
+    [ObservableProperty] public partial PowerSensorRow[] Details { get; set; } = [];
+    [ObservableProperty] public partial bool IsExpanded { get; set; }
+}
+
 public sealed record PowerChartChoice(string? Id, string Label);
 
 public sealed partial class PowerView : UserControl
@@ -21,6 +38,7 @@ public sealed partial class PowerView : UserControl
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(5) };
     private readonly List<PowerReading> _points = [];
     private readonly Dictionary<string, string> _savedLabels = new(StringComparer.Ordinal);
+    private readonly ObservableCollection<PowerProcessorRow> _processors = [];
     private readonly Axis _timeAxis = new() { MinLimit = -0.5 };
     private readonly Axis _wattsAxis = new() { MinLimit = 0, MinStep = 1 };
     private PowerChartChoice[] _choices = [];
@@ -33,6 +51,7 @@ public sealed partial class PowerView : UserControl
     public PowerView()
     {
         InitializeComponent();
+        Processors.ItemsSource = _processors;
         Chart.XAxes = [_timeAxis];
         Chart.YAxes = [_wattsAxis];
         _wattsAxis.Labeler = value => value.ToString("0.#", Strings.Culture) + " W";
@@ -136,15 +155,34 @@ public sealed partial class PowerView : UserControl
         var rows = new List<PowerSensorRow>();
         var chartIds = _points.SelectMany(x => x.Watts.Keys).ToHashSet(StringComparer.Ordinal);
         var choices = new List<PowerChartChoice> { new(null, Strings.Get("PowerChartTotal")) };
+        var processorIndex = 0;
         foreach (var device in _sample?.Devices ?? [])
         {
-            if (device.Sensors.Length == 0)
+            var isProcessor = device.Kind is PowerDeviceKind.Cpu or PowerDeviceKind.AmdCpu;
+            if (isProcessor)
+                UpdateProcessor(device, processorIndex++, included, yes);
+            else if (device.Sensors.Length == 0)
                 rows.Add(new(device.Name, Strings.Get("PowerNoSensor"), FormatWatts(null), ""));
             foreach (var sensor in device.Sensors)
             {
-                rows.Add(new(device.Name, sensor.Name, FormatWatts(sensor.Watts), included.Contains(sensor.Id) ? yes : ""));
+                if (!isProcessor)
+                    rows.Add(new(device.Name, sensor.Name, FormatWatts(sensor.Watts), included.Contains(sensor.Id) ? yes : ""));
                 if (chartIds.Remove(sensor.Id))
                     choices.Add(new(sensor.Id, $"{device.Name} / {sensor.Name}"));
+            }
+        }
+        if (_sample is not null)
+        {
+            while (_processors.Count > processorIndex) _processors.RemoveAt(_processors.Count - 1);
+        }
+        else
+        {
+            foreach (var processor in _processors)
+            {
+                processor.Sensor = Strings.Get("PowerReading");
+                processor.Wattage = FormatWatts(null);
+                processor.Included = "";
+                processor.Details = [];
             }
         }
         choices.AddRange(chartIds.Select(id => new PowerChartChoice(id, _savedLabels.GetValueOrDefault(id, id))));
@@ -160,6 +198,24 @@ public sealed partial class PowerView : UserControl
             _updatingChoices = false;
         }
         RenderChart();
+    }
+
+    private void UpdateProcessor(PowerDevice device, int index, HashSet<string> included, string yes)
+    {
+        if (index == _processors.Count) _processors.Add(new(device.Name));
+        else if (_processors[index].Name != device.Name) _processors[index] = new(device.Name);
+        var row = _processors[index];
+        var selected = device.Sensors.Where(sensor => included.Contains(sensor.Id)).DistinctBy(sensor => sensor.Id).ToArray();
+        var package = selected.FirstOrDefault(sensor => sensor.Name is "CPU Package" or "Package" or "CPU PPT");
+        row.Sensor = Strings.Get(package is not null ? "PowerProcessorPackage" :
+            selected.Length > 0 ? "PowerProcessorCores" : "PowerNoSensor");
+        row.Wattage = FormatWatts(selected.Length > 0 ? selected.Sum(sensor => sensor.Watts) : null);
+        row.Included = selected.Length > 0 ? yes : "";
+        row.Details = device.Sensors
+            .Where(sensor => sensor.Watts.HasValue && sensor.Id != package?.Id)
+            .OrderBy(sensor => sensor.Name, StringComparer.Create(Strings.Culture, CompareOptions.NumericOrdering))
+            .Select(sensor => new PowerSensorRow("", sensor.Name, FormatWatts(sensor.Watts), ""))
+            .ToArray();
     }
 
     private void ChartSourceChanged(object sender, SelectionChangedEventArgs args)

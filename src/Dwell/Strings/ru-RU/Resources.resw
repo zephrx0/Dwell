@@ -339,4 +339,6 @@
   <data name="PowerGpuSuspended" xml:space="preserve"><value>Опрос видеокарт приостановлен.</value></data>
   <data name="PowerNoReadings" xml:space="preserve"><value>Нет доступных показаний мощности</value></data>
   <data name="PowerNoSensor" xml:space="preserve"><value>Датчик мощности недоступен</value></data>
+  <data name="PowerProcessorPackage" xml:space="preserve"><value>Мощность процессора</value></data>
+  <data name="PowerProcessorCores" xml:space="preserve"><value>Мощность по доступным ядрам</value></data>
 </root>

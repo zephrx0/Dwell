@@ -1,4 +1,17 @@
 <UserControl x:Class="Dwell.Views.PowerView" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:lvc="using:LiveChartsCore.SkiaSharpView.WinUI" xmlns:views="using:Dwell.Views">
+  <UserControl.Resources>
+    <DataTemplate x:Key="SensorRowTemplate" x:DataType="views:PowerSensorRow">
+      <Grid ColumnSpacing="12" Padding="8,6" BorderThickness="0,1,0,0" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}">
+        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="82" /><ColumnDefinition Width="70" /></Grid.ColumnDefinitions>
+        <StackPanel Spacing="2">
+          <TextBlock Text="{x:Bind Device}" Visibility="{x:Bind DeviceVisibility}" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{x:Bind Device}" />
+          <TextBlock Text="{x:Bind Sensor}" FontSize="12" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{x:Bind Sensor}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+        </StackPanel>
+        <TextBlock Grid.Column="1" Text="{x:Bind Wattage}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+        <TextBlock Grid.Column="2" Text="{x:Bind Included}" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+      </Grid>
+    </DataTemplate>
+  </UserControl.Resources>
   <Grid>
   <StackPanel Opacity="0" IsHitTestVisible="False" Width="0" Height="0">
     <Rectangle x:Name="AxisSwatch" Fill="{ThemeResource TextFillColorSecondaryBrush}" />
@@ -45,21 +58,27 @@
           <TextBlock x:Name="WattsHeading" Grid.Column="1" HorizontalAlignment="Right" />
           <TextBlock x:Name="IncludedHeading" Grid.Column="2" HorizontalAlignment="Center" />
         </Grid>
-        <ItemsControl x:Name="Sensors">
+        <ItemsControl x:Name="Processors">
           <ItemsControl.ItemTemplate>
-            <DataTemplate x:DataType="views:PowerSensorRow">
-              <Grid ColumnSpacing="12" Padding="8,6" BorderThickness="0,1,0,0" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}">
-                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="82" /><ColumnDefinition Width="70" /></Grid.ColumnDefinitions>
-                <StackPanel Spacing="2">
-                  <TextBlock Text="{x:Bind Device}" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{x:Bind Device}" />
-                  <TextBlock Text="{x:Bind Sensor}" FontSize="12" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{x:Bind Sensor}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                </StackPanel>
-                <TextBlock Grid.Column="1" Text="{x:Bind Wattage}" HorizontalAlignment="Right" VerticalAlignment="Center" />
-                <TextBlock Grid.Column="2" Text="{x:Bind Included}" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-              </Grid>
+            <DataTemplate x:DataType="views:PowerProcessorRow">
+              <Expander HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" IsExpanded="{x:Bind IsExpanded, Mode=TwoWay}">
+                <Expander.Header>
+                  <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="82" /><ColumnDefinition Width="44" /></Grid.ColumnDefinitions>
+                    <StackPanel Spacing="2">
+                      <TextBlock Text="{x:Bind Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{x:Bind Name}" />
+                      <TextBlock Text="{x:Bind Sensor, Mode=OneWay}" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    </StackPanel>
+                    <TextBlock Grid.Column="1" Text="{x:Bind Wattage, Mode=OneWay}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="2" Text="{x:Bind Included, Mode=OneWay}" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                  </Grid>
+                </Expander.Header>
+                <ItemsControl ItemsSource="{x:Bind Details, Mode=OneWay}" ItemTemplate="{StaticResource SensorRowTemplate}" />
+              </Expander>
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
+        <ItemsControl x:Name="Sensors" ItemTemplate="{StaticResource SensorRowTemplate}" />
       </StackPanel>
     </StackPanel>
   </ScrollViewer>
