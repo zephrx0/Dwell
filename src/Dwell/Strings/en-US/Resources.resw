@@ -347,6 +347,7 @@
   <data name="PowerWindowsMeterDetail" xml:space="preserve"><value>Windows energy meter ({0}), {1:0.0} s average.</value></data>
   <data name="PowerHardwareMeterDetail" xml:space="preserve"><value>{0} sensor via LibreHardwareMonitor.</value></data>
   <data name="PowerProcessorCores" xml:space="preserve"><value>Measured core power</value></data>
+  <data name="PowerCoreNumber" xml:space="preserve"><value>Core {0}</value></data>
   <data name="PowerGraphicsPower" xml:space="preserve"><value>GPU power</value></data>
   <data name="PowerGraphicsBoard" xml:space="preserve"><value>Total graphics board power</value></data>
   <data name="PowerCpuNoWatts" xml:space="preserve"><value>No CPU power reading.</value></data>

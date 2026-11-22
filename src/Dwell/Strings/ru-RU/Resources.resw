@@ -345,6 +345,7 @@
   <data name="PowerWindowsMeterDetail" xml:space="preserve"><value>Счётчик энергии Windows ({0}), среднее за {1:0.0} с.</value></data>
   <data name="PowerHardwareMeterDetail" xml:space="preserve"><value>Датчик {0} через LibreHardwareMonitor.</value></data>
   <data name="PowerProcessorCores" xml:space="preserve"><value>Мощность по доступным ядрам</value></data>
+  <data name="PowerCoreNumber" xml:space="preserve"><value>Ядро {0}</value></data>
   <data name="PowerGraphicsPower" xml:space="preserve"><value>Мощность видеокарты</value></data>
   <data name="PowerGraphicsBoard" xml:space="preserve"><value>Мощность всей видеокарты</value></data>
   <data name="PowerCpuNoWatts" xml:space="preserve"><value>Нет замера мощности процессора.</value></data>

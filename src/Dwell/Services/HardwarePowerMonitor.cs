@@ -188,7 +188,8 @@ internal sealed class HardwarePowerMonitor(bool emiOnly = false) : IDisposable
             if (name is null) continue;
             if (!cpuReadings.TryGetValue(package, out var sensors)) cpuReadings[package] = sensors = [];
             var kind = coreChannel ? PowerSensorKind.WindowsCpuCore : PowerSensorKind.Other;
-            if (!sensors.Any(x => x.Name == name)) sensors.Add(new(reading.Id, name, reading.Watts, kind, reading.AverageSeconds));
+            if (!sensors.Any(x => x.Name == name))
+                sensors.Add(new(reading.Id, name, reading.Watts, kind, reading.AverageSeconds, coreChannel ? reading.Name : null));
         }
 
         foreach (var (package, readingsForCpu) in cpuReadings)

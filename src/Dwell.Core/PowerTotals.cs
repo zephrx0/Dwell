@@ -5,7 +5,7 @@ public enum PowerSource { None, Components }
 public enum PowerSensorKind { Other, HardwareCpuCore, WindowsCpuCore }
 
 public sealed record PowerSensor(string Id, string Name, double? Watts, PowerSensorKind Kind = PowerSensorKind.Other,
-    double? AverageSeconds = null);
+    double? AverageSeconds = null, string? SourceName = null);
 public sealed record PowerDevice(string Name, PowerDeviceKind Kind, PowerSensor[] Sensors, double? LoadPercent = null);
 public sealed record PowerTotal(PowerSource Source, double? Watts, string[] SensorIds, bool IsCpuPartial = false)
 {

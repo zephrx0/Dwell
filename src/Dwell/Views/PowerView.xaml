@@ -5,7 +5,7 @@
         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="82" /><ColumnDefinition Width="70" /></Grid.ColumnDefinitions>
         <StackPanel Spacing="2">
           <TextBlock Text="{x:Bind Device}" Visibility="{x:Bind DeviceVisibility}" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{x:Bind Device}" />
-          <TextBlock Text="{x:Bind Sensor}" FontSize="12" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{x:Bind Sensor}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+          <TextBlock Text="{x:Bind Sensor}" FontSize="12" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{x:Bind SensorTooltip}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
         </StackPanel>
         <TextBlock Grid.Column="1" Text="{x:Bind Wattage}" ToolTipService.ToolTip="{x:Bind MeasurementDetail}"
                    HorizontalAlignment="Right" VerticalAlignment="Center" />
@@ -38,7 +38,7 @@
           <ComboBox x:Name="ChartSource" Width="270" SelectionChanged="ChartSourceChanged">
             <ComboBox.ItemTemplate>
               <DataTemplate x:DataType="views:PowerChartChoice">
-                <TextBlock Text="{x:Bind Label}" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{x:Bind Label}" />
+                <TextBlock Text="{x:Bind Label}" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{x:Bind Tooltip}" />
               </DataTemplate>
             </ComboBox.ItemTemplate>
           </ComboBox>

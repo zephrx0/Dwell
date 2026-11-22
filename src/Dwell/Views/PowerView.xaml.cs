@@ -17,6 +17,7 @@ namespace Dwell.Views;
 public sealed record PowerSensorRow(string Device, string Sensor, string Wattage, string Included, string MeasurementDetail = "")
 {
     public Visibility DeviceVisibility => Device.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
+    public string SensorTooltip => MeasurementDetail.Length == 0 ? Sensor : MeasurementDetail;
 }
 
 public sealed partial class PowerProcessorRow(string name) : ObservableObject
@@ -30,7 +31,10 @@ public sealed partial class PowerProcessorRow(string name) : ObservableObject
     [ObservableProperty] public partial bool IsExpanded { get; set; }
 }
 
-public sealed record PowerChartChoice(string? Id, string Label);
+public sealed record PowerChartChoice(string? Id, string Label, string? SourceName = null)
+{
+    public string Tooltip => SourceName is null ? Label : $"{Label}\n{SourceName}";
+}
 
 public sealed partial class PowerView : UserControl
 {
@@ -41,6 +45,7 @@ public sealed partial class PowerView : UserControl
     private readonly DispatcherTimer _timer = new() { Interval = BackgroundInterval };
     private readonly List<PowerReading> _points = [];
     private readonly Dictionary<string, string> _savedLabels = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, (int Number, string? Source)> _coreNumbers = new(StringComparer.Ordinal);
     private readonly ObservableCollection<PowerProcessorRow> _processors = [];
     private readonly Axis _timeAxis = new() { MinLimit = -0.5 };
     private readonly Axis _wattsAxis = new() { MinLimit = 0, MinStep = 1 };
@@ -171,20 +176,27 @@ public sealed partial class PowerView : UserControl
         var choices = new List<PowerChartChoice> { new(null, Strings.Get("PowerChartTotal")) };
         var processorIndex = 0;
         var cpuPowerUnavailable = false;
+        var sensorOrder = StringComparer.Create(Strings.Culture, CompareOptions.NumericOrdering);
         foreach (var device in _sample?.Devices ?? [])
         {
             var isProcessor = device.Kind is PowerDeviceKind.Cpu or PowerDeviceKind.AmdCpu;
             if (isProcessor)
+            {
+                NumberProcessorCores(device, chartIds);
                 cpuPowerUnavailable |= UpdateProcessor(device, processorIndex++, included, yes);
+            }
             else if (device.Sensors.Length == 0)
                 rows.Add(new(device.Name, Strings.Get("PowerNoSensor"), FormatWatts(null), ""));
-            foreach (var sensor in device.Sensors)
+            var sensors = isProcessor
+                ? device.Sensors.OrderBy(sensor => _coreNumbers.ContainsKey(sensor.Id)).ThenBy(sensor => sensor.Name, sensorOrder)
+                : device.Sensors.AsEnumerable();
+            foreach (var sensor in sensors)
             {
                 if (!isProcessor)
                     rows.Add(new(device.Name, SensorLabel(sensor.Name), FormatWatts(sensor.Watts),
                         included.Contains(sensor.Id) ? yes : "", MeasurementDetail(sensor)));
                 if (chartIds.Remove(sensor.Id))
-                    choices.Add(new(sensor.Id, $"{device.Name} / {SensorLabel(sensor.Name)}"));
+                    choices.Add(new(sensor.Id, $"{device.Name} / {SensorLabel(sensor.Name, sensor.Id)}", sensor.SourceName));
             }
         }
         CpuPowerHelp.Visibility = cpuPowerUnavailable && System.Runtime.InteropServices.RuntimeInformation.OSArchitecture ==
@@ -204,7 +216,7 @@ public sealed partial class PowerView : UserControl
                 processor.Details = [];
             }
         }
-        choices.AddRange(chartIds.Select(id => new PowerChartChoice(id, LocalizeSavedLabel(_savedLabels.GetValueOrDefault(id, id)))));
+        choices.AddRange(chartIds.Select(id => new PowerChartChoice(id, LocalizeSavedLabel(id))));
         Sensors.ItemsSource = rows.OrderBy(x => x.Wattage == FormatWatts(null)).ToArray();
         if (!_choices.SequenceEqual(choices))
         {
@@ -217,6 +229,20 @@ public sealed partial class PowerView : UserControl
             _updatingChoices = false;
         }
         RenderChart();
+    }
+
+    private void NumberProcessorCores(PowerDevice device, IReadOnlySet<string> chartIds)
+    {
+        var numbers = PowerCoreNumbers.ForDevice(device);
+        var distinguishSources = device.Sensors
+            .Where(sensor => numbers.ContainsKey(sensor.Id) && (sensor.Watts.HasValue || chartIds.Contains(sensor.Id)))
+            .Select(sensor => sensor.Kind).Distinct().Skip(1).Any();
+        foreach (var sensor in device.Sensors)
+        {
+            if (numbers.TryGetValue(sensor.Id, out var number))
+                _coreNumbers[sensor.Id] = (number, distinguishSources
+                    ? (sensor.Kind == PowerSensorKind.WindowsCpuCore ? "Windows" : "SMU") : null);
+        }
     }
 
     private bool UpdateProcessor(PowerDevice device, int index, HashSet<string> included, string yes)
@@ -235,20 +261,29 @@ public sealed partial class PowerView : UserControl
         row.MeasurementDetail = selected.Length == 1 ? MeasurementDetail(selected[0]) : "";
         row.Wattage = FormatWatts(selected.Length > 0 ? selected.Sum(sensor => sensor.Watts) : null);
         row.Included = selected.Length > 0 ? yes : "";
+        var measuredCoreKinds = device.Sensors.Where(sensor => sensor.Watts.HasValue && _coreNumbers.ContainsKey(sensor.Id))
+            .Select(sensor => sensor.Kind).ToHashSet();
         row.Details = device.Sensors
-            .Where(sensor => sensor.Watts.HasValue && sensor.Id != package?.Id)
+            .Where(sensor => sensor.Id != package?.Id && (sensor.Watts.HasValue || measuredCoreKinds.Contains(sensor.Kind)))
             .OrderBy(sensor => sensor.Name, StringComparer.Create(Strings.Culture, CompareOptions.NumericOrdering))
-            .Select(sensor => new PowerSensorRow("", SensorLabel(sensor.Name), FormatWatts(sensor.Watts), "", MeasurementDetail(sensor)))
+            .Select(sensor => new PowerSensorRow("", SensorLabel(sensor.Name, sensor.Id), FormatWatts(sensor.Watts), "", MeasurementDetail(sensor)))
             .ToArray();
         return selected.Length == 0;
     }
 
     private static string MeasurementDetail(PowerSensor sensor)
     {
-        if (sensor.Watts is null) return "";
+        if (sensor.Watts is null) return sensor.SourceName ?? "";
         return sensor.AverageSeconds is { } seconds
-            ? Strings.Format("PowerWindowsMeterDetail", sensor.Name, seconds)
+            ? Strings.Format("PowerWindowsMeterDetail", sensor.SourceName ?? sensor.Name, seconds)
             : Strings.Format("PowerHardwareMeterDetail", sensor.Name);
+    }
+
+    private string SensorLabel(string name, string id)
+    {
+        if (!_coreNumbers.TryGetValue(id, out var core)) return SensorLabel(name);
+        var label = Strings.Format("PowerCoreNumber", core.Number);
+        return core.Source is { } source ? $"{label} ({source})" : label;
     }
 
     private static string SensorLabel(string name) => name switch
@@ -260,10 +295,11 @@ public sealed partial class PowerView : UserControl
         _ => name
     };
 
-    private static string LocalizeSavedLabel(string label)
+    private string LocalizeSavedLabel(string id)
     {
+        var label = _savedLabels.GetValueOrDefault(id, id);
         var split = label.LastIndexOf(" / ", StringComparison.Ordinal);
-        return split < 0 ? label : label[..(split + 3)] + SensorLabel(label[(split + 3)..]);
+        return split < 0 ? label : label[..(split + 3)] + SensorLabel(label[(split + 3)..], id);
     }
 
     private void ChartSourceChanged(object sender, SelectionChangedEventArgs args)
