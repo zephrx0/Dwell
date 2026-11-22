@@ -2,50 +2,50 @@
 
 [English](#english)
 
-Dwell показывает, на что уходит время за компьютером. В обзоре видно, сколько времени ты провёл в каждом приложении и сколько оно работало в фоне. На графике можно посмотреть день или неделю и увидеть, сколько времени заняла каждая категория. Историю можно выгрузить в CSV.
+Dwell показывает, сколько времени ты проводишь в приложениях на Windows. В «Обзоре» можно выбрать день или неделю и увидеть, какие программы были на экране, а какие работали в фоне. В «Активности» есть история сеансов и экспорт в CSV.
 
-<img src="docs/images/dwell-overview.png" alt="Обзор экранного времени в Dwell с компактным боковым меню" width="900">
+<img src="docs/images/dwell-overview.png" alt="Обзор экранного времени и активности приложений в Dwell" width="900">
 
 ## Установка
 
-Скачай и запусти установщик. Подойдёт Windows 10 версии 1809 или новее на x64, а также Windows 11 на x64 или ARM64 с эмуляцией x64. Установщик уже включает .NET. [Скачать Dwell-Setup.exe](https://github.com/zephrx0/Dwell/releases/latest/download/Dwell-Setup.exe)
+Скачай и запусти `Dwell-Setup.exe`. Подойдёт Windows 10 версии 1809 или новее на x64 и Windows 11 на x64 или ARM64 с эмуляцией x64. .NET уже входит в установщик. [Скачать последнюю версию](https://github.com/zephrx0/Dwell/releases/latest/download/Dwell-Setup.exe)
 
-Когда выйдет новая версия, Dwell покажет уведомление Windows. Установить обновление можно в разделе «Настройки → Обновления». [История релизов](https://github.com/zephrx0/Dwell/releases)
+Dwell работает в трее и показывает уведомление, когда появляется обновление. Проверить и установить его можно через «Настройки → Обновления». [Что изменилось в релизах](https://github.com/zephrx0/Dwell/releases)
 
-## Как пользоваться
+## Учёт времени
 
-Если в статистику попала фоновая служба, раскрой её строку в обзоре и нажми «Исключить из статистики». Чтобы вернуть приложение вместе с его историей, открой «Скрытые приложения» в боковом меню и нажми «Вернуть в статистику».
+Чтобы убрать программу из обзора, раскрой её строку и нажми «Исключить из статистики». Вернуть приложение вместе с историей можно в разделе «Скрытые приложения». В «Лимитах и отдыхе» настраиваются дневные лимиты, расписание отдыха и напоминания о перерывах.
 
-В разделе «Лимиты и отдых» можно задать дневной лимит, настроить расписание отдыха или включить напоминания о перерывах. Тему, язык и автозапуск в трее можно поменять в настройках.
+История и настройки хранятся на твоём компьютере. Учёт времени работает офлайн.
 
-Раздел «Энергопотребление» показывает ватты в реальном времени. Dwell записывает показания и в трее. График хранит последние 24 часа и показывает среднюю мощность за каждые 15 минут. Над графиком можно выбрать общую мощность или отдельный датчик. Dwell читает датчики оборудования и счётчики Windows, чтобы показать мощность процессора и видеокарт. Источник общей цифры указан над графиком, а в таблице видно, какие показания вошли в расчёт.
+## Энергопотребление
 
-История и настройки хранятся на твоём компьютере. Статистика работает офлайн.
+График показывает мощность процессора и видеокарт за последние 24 часа. Каждый столбец — среднее за 15 минут. Над графиком можно выбрать сумму или отдельный датчик. Нажми на строку процессора, чтобы открыть показания ядер.
+
+На некоторых ПК Windows не предоставляет доступ к счётчику мощности процессора. В таком случае Dwell показывает доступную загрузку в процентах и помечает сумму в ваттах как неполную. На x64 попробуй установить официальную подписанную версию PawnIO, если нужны показания мощности. Dwell обнаружит драйвер при следующей проверке. [Загрузить PawnIO с сайта разработчика](https://pawnio.eu/)
 
 ## English
 
-Dwell shows where your time goes on Windows. Pick a day or a week in Overview to see how long each app was on screen or running in the background, and how your time breaks down by category. You can also export your history as a CSV.
+Dwell tracks time spent in Windows apps. Open **Overview** to see what was on screen or running in the background on a given day or week. **Activity** shows individual sessions and lets you export them as CSV. History and settings stay on your PC.
 
-If a background service is cluttering up your stats, expand its row in Overview and select **Exclude from statistics**. To bring it back with its history, open **Hidden apps** in the sidebar and select **Restore to statistics**.
+Expand an app in Overview to hide it from statistics. **Hidden apps** brings it back with its history. Use **Limits and breaks** to set daily limits and schedule reminders.
 
-**Limits and breaks** is where you can set daily limits, schedule downtime, and turn on break reminders. Theme, language, and startup in the system tray are in Settings. Your history and settings stay on your PC, and tracking works offline.
+Run the installer on x64 Windows 10 version 1809 or later, or on Windows 11 with x64 or ARM64 with x64 emulation. The .NET runtime is included. Updates are available in **Settings → Updates**. [Download Dwell-Setup.exe](https://github.com/zephrx0/Dwell/releases/latest/download/Dwell-Setup.exe)
 
-Open **Power usage** to see the last 24 hours in watts, averaged over 15-minute intervals. Dwell keeps recording in the tray and restores readings after a restart. You can plot total power or choose a single sensor above the chart. Dwell reads hardware sensors and Windows energy counters, for CPUs and GPUs on supported PCs. The label above the chart identifies the source of the total, and the table shows which readings count toward it.
+### Power usage
 
-Run the installer on x64 Windows 10 version 1809 or later, or on Windows 11 with x64 or ARM64 with x64 emulation. The .NET runtime is included. Dwell sends a Windows notification when an update is available. You can install it from **Settings → Updates**. [Download Dwell-Setup.exe](https://github.com/zephrx0/Dwell/releases/latest/download/Dwell-Setup.exe)
+The chart shows CPU and GPU power over the last 24 hours. Each bar is a 15-minute average. Pick a sensor above the chart or expand the processor row to see its core readings.
+
+If Windows provides no CPU power counter, Dwell shows available CPU utilization as a percentage and marks the total in watts as incomplete. On x64, the official signed PawnIO driver can provide access to CPU power sensors on supported hardware. Dwell will pick up the driver on its next check. [Get PawnIO from its developer](https://pawnio.eu/)
 
 ## Build
 
-Dwell uses C#, WinUI 3, and SQLite. To build the installer, run this from the repository root on Windows with the .NET 10 SDK and Inno Setup 6.3 or newer installed.
+Build on Windows with the .NET 10 SDK and Inno Setup 6.3 or later.
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File build.ps1
 ```
 
-The script builds Dwell, runs the tests, and puts `Dwell-Setup.exe` in a versioned folder under `artifacts`.
+The script builds Dwell, runs its tests, and puts `Dwell-Setup.exe` in a versioned directory under `artifacts`. To sign the app and installer, put Windows SDK SignTool on PATH and set `DWELL_SIGN_CERT_THUMBPRINT` to the thumbprint of the publisher’s code-signing certificate.
 
-To sign a release, install the publisher's code-signing certificate, put Windows SDK SignTool on PATH, and set `DWELL_SIGN_CERT_THUMBPRINT` to the certificate thumbprint before running the build. The script signs and verifies both the app and the installer.
-
-Hardware sensors are read through LibreHardwareMonitor. [Hardware sensor licenses](src/Dwell/HardwareSensorNotices.txt)
-
-Made by [zephrx0](https://github.com/zephrx0).
+Dwell reads hardware sensors through LibreHardwareMonitor. [Third-party licenses](src/Dwell/HardwareSensorNotices.txt)
