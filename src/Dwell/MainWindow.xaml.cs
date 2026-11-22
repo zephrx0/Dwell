@@ -103,6 +103,7 @@ public sealed partial class MainWindow : Window
         _updateTimer.Start();
         Closed += (_, _) =>
         {
+            LimitsPage.StopShutdownTimer();
             _refreshTimer.Stop(); TrayIcon.Dispose();
             _updateTimer.Stop();
             _updateShutdown.Cancel();

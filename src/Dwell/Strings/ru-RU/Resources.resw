@@ -350,4 +350,15 @@
   <data name="PowerCpuNoWatts" xml:space="preserve"><value>Нет замера мощности процессора.</value></data>
   <data name="PowerCpuLoad" xml:space="preserve"><value>Загрузка {0}%</value></data>
   <data name="PowerCpuHelp" xml:space="preserve"><value>Как включить замер процессора</value></data>
+  <data name="ShutdownHeading" xml:space="preserve"><value>Выключение компьютера</value></data>
+  <data name="ShutdownMinutes" xml:space="preserve"><value>Минут до выключения</value></data>
+  <data name="ShutdownHint" xml:space="preserve"><value>Таймер работает, пока Dwell открыт или свёрнут в трей.</value></data>
+  <data name="ShutdownStart" xml:space="preserve"><value>Запустить таймер</value></data>
+  <data name="ShutdownCancel" xml:space="preserve"><value>Отменить выключение</value></data>
+  <data name="ShutdownRemaining" xml:space="preserve"><value>До выключения {0:00}:{1:00}:{2:00}</value></data>
+  <data name="ShutdownCanceled" xml:space="preserve"><value>Выключение отменено.</value></data>
+  <data name="ShutdownInvalidMinutes" xml:space="preserve"><value>Введи целое число от 1 до 1440.</value></data>
+  <data name="ShutdownRequesting" xml:space="preserve"><value>Отправляем команду выключения…</value></data>
+  <data name="ShutdownRequested" xml:space="preserve"><value>Windows получила команду выключения.</value></data>
+  <data name="ShutdownFailed" xml:space="preserve"><value>Не удалось выключить компьютер.</value></data>
 </root>

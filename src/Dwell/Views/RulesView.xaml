@@ -30,6 +30,18 @@
         <Border Style="{StaticResource DwellCardStyle}" Padding="16,12">
         <StackPanel x:Name="BreakSection" Spacing="12"><ToggleSwitch x:Name="BreakToggle" IsOn="{Binding BreaksEnabled, Mode=TwoWay}" OnContent="" OffContent="" /><NumberBox x:Name="BreakInterval" Width="240" HorizontalAlignment="Left" Minimum="5" Maximum="180" SpinButtonPlacementMode="Inline" Value="{Binding BreakMinutes, Mode=TwoWay}" IsEnabled="{Binding BreaksEnabled}" /></StackPanel>
         </Border>
+        <Border Style="{StaticResource DwellCardStyle}" Padding="16,12">
+          <StackPanel Spacing="8">
+            <TextBlock x:Name="ShutdownHeading" FontSize="18" FontWeight="SemiBold" />
+            <TextBlock x:Name="ShutdownMinutesLabel" />
+            <views:InlineWrapPanel>
+              <NumberBox x:Name="ShutdownMinutes" Width="144" Minimum="1" Maximum="1440" Value="30" SpinButtonPlacementMode="Inline"
+                         automation:AutomationProperties.LabeledBy="{Binding ElementName=ShutdownMinutesLabel}" />
+              <Button x:Name="ShutdownButton" Click="ShutdownClicked" />
+            </views:InlineWrapPanel>
+            <TextBlock x:Name="ShutdownStatus" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+          </StackPanel>
+        </Border>
         <TextBlock Text="{Binding Error}" Visibility="{Binding Error, Converter={StaticResource TextVisibility}}" Foreground="{ThemeResource SystemFillColorCriticalBrush}" TextWrapping="Wrap" />
       </StackPanel>
     </ScrollViewer>

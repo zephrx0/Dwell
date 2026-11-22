@@ -352,4 +352,15 @@
   <data name="PowerCpuNoWatts" xml:space="preserve"><value>No CPU power reading.</value></data>
   <data name="PowerCpuLoad" xml:space="preserve"><value>{0}% utilization</value></data>
   <data name="PowerCpuHelp" xml:space="preserve"><value>How to enable CPU power readings</value></data>
+  <data name="ShutdownHeading" xml:space="preserve"><value>Shut down the PC</value></data>
+  <data name="ShutdownMinutes" xml:space="preserve"><value>Minutes until shutdown</value></data>
+  <data name="ShutdownHint" xml:space="preserve"><value>The timer runs while Dwell is open or in the system tray.</value></data>
+  <data name="ShutdownStart" xml:space="preserve"><value>Start timer</value></data>
+  <data name="ShutdownCancel" xml:space="preserve"><value>Cancel shutdown</value></data>
+  <data name="ShutdownRemaining" xml:space="preserve"><value>Shutting down in {0:00}:{1:00}:{2:00}</value></data>
+  <data name="ShutdownCanceled" xml:space="preserve"><value>Shutdown canceled.</value></data>
+  <data name="ShutdownInvalidMinutes" xml:space="preserve"><value>Enter a whole number from 1 to 1440.</value></data>
+  <data name="ShutdownRequesting" xml:space="preserve"><value>Requesting shutdown…</value></data>
+  <data name="ShutdownRequested" xml:space="preserve"><value>Windows received the shutdown request.</value></data>
+  <data name="ShutdownFailed" xml:space="preserve"><value>Could not shut down the PC.</value></data>
 </root>
