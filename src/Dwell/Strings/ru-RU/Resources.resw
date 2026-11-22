@@ -331,6 +331,7 @@
   <data name="PowerChartTotal" xml:space="preserve"><value>Общая мощность</value></data>
   <data name="PowerSourceNone" xml:space="preserve"><value>Потребление ПК</value></data>
   <data name="PowerSourceComponents" xml:space="preserve"><value>Сумма доступных показаний компонентов</value></data>
+  <data name="PowerSourcePartialCpu" xml:space="preserve"><value>Неполная сумма. Нет замера мощности всего процессора.</value></data>
   <data name="PowerSourceSupplyOutput" xml:space="preserve"><value>Потребление ПК по выходу блока питания</value></data>
   <data name="PowerSourceBattery" xml:space="preserve"><value>Потребление ПК от батареи</value></data>
   <data name="PowerReading" xml:space="preserve"><value>Считываем датчики…</value></data>

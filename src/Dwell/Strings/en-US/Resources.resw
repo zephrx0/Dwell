@@ -331,6 +331,7 @@
   <data name="PowerChartTotal" xml:space="preserve"><value>Total power</value></data>
   <data name="PowerSourceNone" xml:space="preserve"><value>PC power usage</value></data>
   <data name="PowerSourceComponents" xml:space="preserve"><value>Sum of available component readings</value></data>
+  <data name="PowerSourcePartialCpu" xml:space="preserve"><value>Partial total. CPU package power is unavailable.</value></data>
   <data name="PowerSourceSupplyOutput" xml:space="preserve"><value>PC power at the power supply output</value></data>
   <data name="PowerSourceBattery" xml:space="preserve"><value>PC power from the battery</value></data>
   <data name="PowerReading" xml:space="preserve"><value>Reading sensors…</value></data>

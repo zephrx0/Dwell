@@ -92,8 +92,12 @@ internal sealed class HardwarePowerMonitor : IDisposable
         {
             hardware.Update();
             sensors = hardware.Sensors.Where(x => x.SensorType == SensorType.Power)
-                .Select(x => new PowerSensor(x.Identifier.ToString(), x.Name, SensorWatts(x.Value, hardware.HardwareType == HardwareType.Cpu)))
+                .Select(x => ReadHardwareSensor(x, hardware.HardwareType == HardwareType.Cpu))
                 .ToArray();
+            // LibreHardwareMonitor can expose an all-zero core set when it cannot read the CPU counters.
+            if (hardware.HardwareType == HardwareType.Cpu &&
+                !sensors.Any(x => x.Kind == PowerSensorKind.HardwareCpuCore && x.Watts > 0))
+                sensors = sensors.Select(x => x.Watts == 0 ? x with { Watts = null } : x).ToArray();
         }
         catch (Exception ex) when (SensorError(ex)) { }
 
@@ -139,23 +143,39 @@ internal sealed class HardwarePowerMonitor : IDisposable
     [DllImport("atiadlxx.dll", CallingConvention = CallingConvention.Cdecl)]
     private static extern int ADL2_Main_Control_Destroy(IntPtr context);
 
+    private static PowerSensor ReadHardwareSensor(ISensor sensor, bool isCpu)
+    {
+        const string corePrefix = "Core #";
+        const string coreSuffix = " (SMU)";
+        var name = sensor.Name;
+        var kind = isCpu && name.StartsWith(corePrefix, StringComparison.Ordinal) &&
+            name.EndsWith(coreSuffix, StringComparison.Ordinal) &&
+            int.TryParse(name.AsSpan(corePrefix.Length, name.Length - corePrefix.Length - coreSuffix.Length), out _)
+            ? PowerSensorKind.HardwareCpuCore : PowerSensorKind.Other;
+        var watts = sensor.Value is >= 0 and var value && float.IsFinite(value) &&
+            (!isCpu || value > 0 || kind == PowerSensorKind.HardwareCpuCore) ? value : (double?)null;
+        return new(sensor.Identifier.ToString(), name, watts, kind);
+    }
+
     private static void AddWindowsReadings(List<PowerDevice> devices, Dictionary<int, int> cpuIndices, List<EnergyChannel> readings)
     {
         var cpuReadings = new Dictionary<int, List<PowerSensor>>();
         foreach (var reading in readings.OrderByDescending(x => x.Watts.HasValue))
         {
             var parts = reading.Name.Split('_');
-            var coreChannel = parts is ["RAPL", _, var core, "CORE"] && core.StartsWith("Core", StringComparison.Ordinal);
-            if (coreChannel) parts = [parts[0], parts[1], parts[2]];
-            if (parts is not ["RAPL", var packageName, var domain] ||
-                !packageName.StartsWith("Package", StringComparison.Ordinal) ||
-                !int.TryParse(packageName.AsSpan(7), out var package))
+            var coreChannel = parts is ["RAPL", _, var core, "CORE"] && core.StartsWith("Core", StringComparison.Ordinal) &&
+                int.TryParse(core.AsSpan(4), out _);
+            if ((parts.Length != 3 && !coreChannel) || parts[0] != "RAPL" ||
+                !parts[1].StartsWith("Package", StringComparison.Ordinal) ||
+                !int.TryParse(parts[1].AsSpan(7), out var package))
             {
                 devices.Add(new(reading.Device.Length > 0 ? reading.Device : "EMI", PowerDeviceKind.Other,
                     [new(reading.Id, reading.Name, reading.Watts)]));
                 continue;
             }
 
+            var packageName = parts[1];
+            var domain = parts[2];
             if (domain == "DRAM")
             {
                 var memoryName = $"DRAM ({packageName})";
@@ -174,7 +194,8 @@ internal sealed class HardwarePowerMonitor : IDisposable
                 _ => reading.Name
             };
             if (!cpuReadings.TryGetValue(package, out var sensors)) cpuReadings[package] = sensors = [];
-            if (!sensors.Any(x => x.Name == name)) sensors.Add(new(reading.Id, name, reading.Watts));
+            var kind = coreChannel ? PowerSensorKind.WindowsCpuCore : PowerSensorKind.Other;
+            if (!sensors.Any(x => x.Name == name)) sensors.Add(new(reading.Id, name, reading.Watts, kind));
         }
 
         foreach (var (package, readingsForCpu) in cpuReadings)
@@ -196,9 +217,6 @@ internal sealed class HardwarePowerMonitor : IDisposable
             devices[index] = device with { Sensors = sensors.ToArray() };
         }
     }
-
-    private static double? SensorWatts(float? value, bool isCpu) =>
-        value is >= 0 && float.IsFinite(value.Value) && (!isCpu || value > 0) ? value.Value : null;
 
     private static (int Index, string Name)[] ReadDisks()
     {

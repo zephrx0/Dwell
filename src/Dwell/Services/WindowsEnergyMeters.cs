@@ -13,8 +13,11 @@ internal sealed class WindowsEnergyMeters : IDisposable
     private static readonly Guid InterfaceClass = new("45BD8344-7ED6-49CF-A440-C276C933B053");
     private const uint GetVersion = 0x224000, GetMetadataSize = 0x224004, GetMetadata = 0x224008, GetMeasurement = 0x22400c;
     private const int CounterSize = 16;
+    private const long MaxSampleGap = TimeSpan.TicksPerMinute;
     private readonly List<Meter> _meters = [];
     private long _nextScan;
+
+    private readonly record struct Counter(ulong Energy, ulong Time, long ReadAt);
 
     private sealed class Meter(string path, string name, SafeFileHandle handle, string?[] channels)
     {
@@ -23,7 +26,7 @@ internal sealed class WindowsEnergyMeters : IDisposable
         public SafeFileHandle Handle { get; } = handle;
         public string?[] Channels { get; } = channels;
         public byte[] Buffer { get; } = new byte[channels.Length * CounterSize];
-        public (ulong Energy, ulong Time)[] Previous { get; } = new (ulong, ulong)[channels.Length];
+        public Counter[] Previous { get; } = new Counter[channels.Length];
     }
 
     public List<EnergyChannel> Read()
@@ -43,23 +46,39 @@ internal sealed class WindowsEnergyMeters : IDisposable
             {
                 meter.Handle.Dispose();
                 _meters.RemoveAt(i);
+                _nextScan = Math.Min(_nextScan, Environment.TickCount64 + 2_000);
                 continue;
             }
 
+            var now = DateTime.UtcNow.Ticks;
             for (var channel = 0; channel < meter.Channels.Length; channel++)
             {
                 if (meter.Channels[channel] is not { } name) continue;
                 var offset = channel * CounterSize;
                 var energy = BinaryPrimitives.ReadUInt64LittleEndian(meter.Buffer.AsSpan(offset));
                 var time = BinaryPrimitives.ReadUInt64LittleEndian(meter.Buffer.AsSpan(offset + 8));
-                var previous = meter.Previous[channel];
-                meter.Previous[channel] = (energy, time);
-                var watts = previous.Time > 0 && time > previous.Time && time - previous.Time <= 10 * (ulong)TimeSpan.TicksPerSecond && energy >= previous.Energy
-                    ? 0.036 * (energy - previous.Energy) / (time - previous.Time) : (double?)null;
+                ref var previous = ref meter.Previous[channel];
+                var watts = UpdateCounter(ref previous, new Counter(energy, time, now));
                 readings.Add(new($"emi:{meter.Path}/{channel}", meter.Name, name, watts));
             }
         }
         return readings;
+    }
+
+    private static double? UpdateCounter(ref Counter previous, Counter current)
+    {
+        // Keep the original baseline while a driver repeats the same measurement.
+        if (current.Time == previous.Time) return null;
+        var baseline = previous;
+        previous = current;
+
+        // A wall-clock gap also catches long suspend periods when the meter's clock stopped.
+        var elapsed = current.ReadAt - baseline.ReadAt;
+        if (elapsed is <= 0 or > MaxSampleGap || baseline.Time == 0 || current.Time < baseline.Time ||
+            current.Energy < baseline.Energy || current.Time - baseline.Time > MaxSampleGap)
+            return null;
+
+        return 0.036 * (current.Energy - baseline.Energy) / (current.Time - baseline.Time);
     }
 
     private static string[] FindInterfaces()
