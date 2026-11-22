@@ -2,15 +2,49 @@
   <Application.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries><XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" /></ResourceDictionary.MergedDictionaries>
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+          <SolidColorBrush x:Key="DwellWindowBrush" Color="#EEF1F5" />
+          <SolidColorBrush x:Key="DwellChartBrush" Color="#FBFCFD" />
+          <SolidColorBrush x:Key="DwellCardBrush" Color="#FBFCFD" />
+          <SolidColorBrush x:Key="DwellBorderBrush" Color="#BBC5D1" />
+          <SolidColorBrush x:Key="DwellDividerBrush" Color="#D7DEE6" />
+
+          <SolidColorBrush x:Key="DwellCommunicationBrush" Color="#386A9B" />
+          <SolidColorBrush x:Key="DwellProductivityBrush" Color="#66558D" />
+          <SolidColorBrush x:Key="DwellEntertainmentBrush" Color="#387A70" />
+          <SolidColorBrush x:Key="DwellGamesBrush" Color="#976044" />
+          <SolidColorBrush x:Key="DwellOtherBrush" Color="#647084" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+          <StaticResource x:Key="DwellWindowBrush" ResourceKey="SolidBackgroundFillColorBaseBrush" />
+          <StaticResource x:Key="DwellChartBrush" ResourceKey="SolidBackgroundFillColorSecondaryBrush" />
+          <StaticResource x:Key="DwellCardBrush" ResourceKey="CardBackgroundFillColorDefaultBrush" />
+          <StaticResource x:Key="DwellBorderBrush" ResourceKey="CardStrokeColorDefaultBrush" />
+          <StaticResource x:Key="DwellDividerBrush" ResourceKey="DividerStrokeColorDefaultBrush" />
+          <SolidColorBrush x:Key="DwellCommunicationBrush" Color="{ThemeResource SystemAccentColor}" />
+          <SolidColorBrush x:Key="DwellProductivityBrush" Color="{ThemeResource SystemAccentColorDark1}" />
+          <SolidColorBrush x:Key="DwellEntertainmentBrush" Color="{ThemeResource SystemAccentColorLight1}" />
+          <SolidColorBrush x:Key="DwellGamesBrush" Color="{ThemeResource SystemAccentColorDark2}" />
+          <SolidColorBrush x:Key="DwellOtherBrush" Color="{ThemeResource SystemAccentColorLight2}" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="HighContrast">
+          <SolidColorBrush x:Key="DwellWindowBrush" Color="{ThemeResource SystemColorWindowColor}" />
+          <SolidColorBrush x:Key="DwellChartBrush" Color="{ThemeResource SystemColorWindowColor}" />
+          <SolidColorBrush x:Key="DwellCardBrush" Color="{ThemeResource SystemColorWindowColor}" />
+          <SolidColorBrush x:Key="DwellBorderBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+          <SolidColorBrush x:Key="DwellDividerBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+          <SolidColorBrush x:Key="DwellCommunicationBrush" Color="{ThemeResource SystemColorHighlightColor}" />
+          <SolidColorBrush x:Key="DwellProductivityBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+          <SolidColorBrush x:Key="DwellEntertainmentBrush" Color="{ThemeResource SystemColorHotlightColor}" />
+          <SolidColorBrush x:Key="DwellGamesBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+          <SolidColorBrush x:Key="DwellOtherBrush" Color="{ThemeResource SystemColorHighlightColor}" />
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
       <CornerRadius x:Key="ControlCornerRadius">8</CornerRadius>
       <views:BoolVisibilityConverter x:Key="BoolVisibility" />
-      <views:CategoryBrushConverter x:Key="CategoryBrush" />
+      <views:CategoryVisibilityConverter x:Key="CategoryVisibility" />
       <views:TextVisibilityConverter x:Key="TextVisibility" />
-      <SolidColorBrush x:Key="DwellCommunicationBrush" Color="{ThemeResource SystemAccentColor}" />
-      <SolidColorBrush x:Key="DwellProductivityBrush" Color="{ThemeResource SystemAccentColorDark1}" />
-      <SolidColorBrush x:Key="DwellEntertainmentBrush" Color="{ThemeResource SystemAccentColorLight1}" />
-      <SolidColorBrush x:Key="DwellGamesBrush" Color="{ThemeResource SystemAccentColorDark2}" />
-      <SolidColorBrush x:Key="DwellOtherBrush" Color="{ThemeResource SystemAccentColorLight2}" />
     </ResourceDictionary>
   </Application.Resources>
 </Application>

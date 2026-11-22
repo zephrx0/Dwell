@@ -124,11 +124,12 @@ public sealed partial class MainWindow : Window
 
     private void UpdatePersonalization()
     {
-        var useMica = MicaController.IsSupported() && _uiSettings.AdvancedEffectsEnabled && !NativeMethods.HighContrastEnabled();
+        var useMica = Root.ActualTheme == ElementTheme.Dark && MicaController.IsSupported() &&
+            _uiSettings.AdvancedEffectsEnabled && !NativeMethods.HighContrastEnabled();
         FallbackSurface.Visibility = useMica ? Visibility.Collapsed : Visibility.Visible;
         if (!useMica) { _mica?.Dispose(); _mica = null; _backdrop = null; return; }
         _backdrop ??= new SystemBackdropConfiguration { IsInputActive = _visible };
-        _backdrop.Theme = Root.ActualTheme == ElementTheme.Dark ? SystemBackdropTheme.Dark : SystemBackdropTheme.Light;
+        _backdrop.Theme = SystemBackdropTheme.Dark;
         if (_mica is null)
         {
             _mica = new MicaController();

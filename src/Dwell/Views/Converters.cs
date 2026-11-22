@@ -11,10 +11,10 @@ public sealed class BoolVisibilityConverter : IValueConverter
     public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotSupportedException();
 }
 
-public sealed class CategoryBrushConverter : IValueConverter
+public sealed class CategoryVisibilityConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language) =>
-        Application.Current.Resources["Dwell" + (AppCategory)value + "Brush"];
+        value is AppCategory category && category.ToString() == parameter as string ? Visibility.Visible : Visibility.Collapsed;
     public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotSupportedException();
 }
 

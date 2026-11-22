@@ -7,11 +7,11 @@
       <Rectangle x:Name="Swatch3" Fill="{ThemeResource DwellGamesBrush}" />
       <Rectangle x:Name="Swatch4" Fill="{ThemeResource DwellOtherBrush}" />
       <Rectangle x:Name="TextSwatch" Fill="{ThemeResource TextFillColorSecondaryBrush}" />
-      <Rectangle x:Name="GridSwatch" Fill="{ThemeResource DividerStrokeColorDefaultBrush}" />
-      <Rectangle x:Name="TooltipBackgroundSwatch" Fill="{ThemeResource SolidBackgroundFillColorBaseBrush}" />
+      <Rectangle x:Name="GridSwatch" Fill="{ThemeResource DwellDividerBrush}" />
+      <Rectangle x:Name="TooltipBackgroundSwatch" Fill="{ThemeResource DwellWindowBrush}" />
       <Rectangle x:Name="TooltipTextSwatch" Fill="{ThemeResource TextFillColorPrimaryBrush}" />
     </StackPanel>
-    <lvc:CartesianChart x:Name="Chart" Background="{ThemeResource SolidBackgroundFillColorSecondaryBrush}" Height="280"
+    <lvc:CartesianChart x:Name="Chart" Background="{ThemeResource DwellChartBrush}" Height="280"
                         LegendPosition="Hidden" TooltipPosition="Top" FindingStrategy="CompareOnlyXTakeClosest" AnimationsSpeed="0:0:0" />
   </Grid>
 </UserControl>
