@@ -14,7 +14,7 @@ internal sealed class ForegroundVideo
     private uint _pid;
     private string? _appId;
 
-    public async Task<bool> IsPlayingAsync(nint window, uint pid, string path, CancellationToken cancellationToken)
+    public async Task<bool> IsPlayingAsync(nint window, uint pid, string path, bool fullScreen, CancellationToken cancellationToken)
     {
         if (Environment.TickCount64 < _retryAt) return false;
         try
@@ -37,9 +37,10 @@ internal sealed class ForegroundVideo
                     !id.Equals(Path.GetFileName(path), StringComparison.OrdinalIgnoreCase) &&
                     !id.Equals(Path.GetFileNameWithoutExtension(path), StringComparison.OrdinalIgnoreCase)) continue;
                 var playback = session.GetPlaybackInfo();
-                // Browsers can leave PlaybackType unset. The caller requires a full-screen foreground window.
+                var isVideo = playback.PlaybackType == MediaPlaybackType.Video ||
+                    fullScreen && playback.PlaybackType is MediaPlaybackType.Unknown or null;
                 if (playback.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing &&
-                    playback.PlaybackType is MediaPlaybackType.Video or MediaPlaybackType.Unknown or null)
+                    isVideo)
                     return NativeMethods.GetForegroundWindow() == window;
             }
         }

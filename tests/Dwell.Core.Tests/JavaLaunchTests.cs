@@ -26,4 +26,19 @@ public sealed class JavaLaunchTests
             JavaLaunch.FromArguments(["javaw", "--module-path", "mods", "--module=example.app/example.Main"])?.Target);
         Assert.Null(JavaLaunch.FromArguments(["javaw", "@options.txt", "other.Main"]));
     }
+
+    [Fact]
+    public void ReadsJavaArgumentFilesWithoutUsingApplicationArguments()
+    {
+        var arguments = JavaLaunch.TokenizeArgumentFile("""
+            # Generated launcher arguments
+            -cp "libs/one.jar;libs/two.jar"
+            -jar 'C:/My App/client.jar'
+            --token private
+            """);
+        var launch = JavaLaunch.FromArguments(["javaw", "@win_args.txt"], _ => arguments);
+        Assert.Equal("client", launch?.Name);
+        Assert.Equal(@"jar:C:\MY APP\CLIENT.JAR", launch?.Target);
+        Assert.Null(JavaLaunch.FromArguments(["javaw", "--disable-@files", "@win_args.txt"], _ => arguments));
+    }
 }

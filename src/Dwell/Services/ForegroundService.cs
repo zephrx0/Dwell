@@ -45,11 +45,11 @@ public sealed class ForegroundService(AppRepository repository)
     internal Task<bool> IsWatchingVideoAsync(CancellationToken cancellationToken)
     {
         var window = NativeMethods.GetForegroundWindow();
-        if (!NativeMethods.IsFullScreen(window)) return Task.FromResult(false);
+        if (window == 0) return Task.FromResult(false);
         NativeMethods.GetWindowThreadProcessId(window, out var pid);
         var path = ApplicationPath(window, ref pid);
         return path is not null && ApplicationPolicy.IsUserApplication(path)
-            ? _video.IsPlayingAsync(window, pid, path, cancellationToken)
+            ? _video.IsPlayingAsync(window, pid, path, NativeMethods.IsFullScreen(window), cancellationToken)
             : Task.FromResult(false);
     }
 

@@ -46,6 +46,9 @@ public partial class App : Application
             .AddSingleton<ActivityViewModel>().AddSingleton<RulesViewModel>().AddSingleton<ReminderService>()
             .AddSingleton<UpdateService>().AddSingleton<MainWindow>().BuildServiceProvider();
         _window = _services.GetRequiredService<MainWindow>();
+        if (_services.GetRequiredService<AppRepository>().Recovery is { } recovery)
+            NativeMethods.MessageBox(0, Strings.Get(recovery.RestoredBackup ? "StorageRecovered" : "StorageRecoveredEmpty") +
+                "\n\n" + recovery.Folder, "Dwell", 0x40);
         try { settings.SynchronizeAutoStart(); }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Security.SecurityException) { }
         _instance.Listen(() => _window.DispatcherQueue.TryEnqueue(_window.Show));

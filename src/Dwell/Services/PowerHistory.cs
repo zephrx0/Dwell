@@ -16,6 +16,21 @@ internal sealed record PowerHistory(int Sleeps, int Shutdowns, int Restarts)
             var sleeps = 0;
             var shutdowns = 0;
             var restarts = 0;
+            DateTime? lastShutdown = null;
+            int lastShutdownId = 0;
+            void CountShutdown(EventRecord entry)
+            {
+                var time = entry.TimeCreated;
+                if (time is { } current && lastShutdown is { } previous && entry.Id != lastShutdownId &&
+                    current - previous is { Ticks: >= 0 and <= TimeSpan.TicksPerSecond * 10 })
+                {
+                    lastShutdown = null;
+                    return;
+                }
+                shutdowns++;
+                lastShutdown = time;
+                lastShutdownId = entry.Id;
+            }
             using var action = new EventLogPropertySelector(["Event/EventData/Data[@Name='ShutdownActionType']"]);
             using var target = new EventLogPropertySelector(["Event/EventData/Data[@Name='TargetState']"]);
             while (true)
@@ -26,14 +41,14 @@ internal sealed record PowerHistory(int Sleeps, int Shutdowns, int Restarts)
                 else if (entry.Id == 42 && entry is EventLogRecord transition)
                 {
                     // Fast startup uses hibernation internally with PowerSystemShutdown as its target.
-                    if (Convert.ToInt32(transition.GetPropertyValues(target)[0], CultureInfo.InvariantCulture) == 6) shutdowns++;
+                    if (Convert.ToInt32(transition.GetPropertyValues(target)[0], CultureInfo.InvariantCulture) == 6) CountShutdown(entry);
                     else sleeps++;
                 }
                 else if (entry is EventLogRecord record)
                 {
                     switch (Convert.ToInt32(record.GetPropertyValues(action)[0], CultureInfo.InvariantCulture))
                     {
-                        case 4 or 6: shutdowns++; break;
+                        case 4 or 6: CountShutdown(entry); break;
                         case 5: restarts++; break;
                     }
                 }

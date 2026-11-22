@@ -5,9 +5,9 @@ using LibreHardwareMonitor.Hardware;
 namespace Dwell.Services;
 
 internal sealed record HardwarePowerSample(
-    PowerTotal Total, IReadOnlyList<PowerDevice> Devices);
+    PowerTotal Total, IReadOnlyList<PowerDevice> Devices, bool GpuPollingPaused = false);
 
-internal sealed class HardwarePowerMonitor : IDisposable
+internal sealed class HardwarePowerMonitor(bool emiOnly = false) : IDisposable
 {
     private readonly object _gate = new();
     private readonly WindowsEnergyMeters _energyMeters = new();
@@ -23,7 +23,8 @@ internal sealed class HardwarePowerMonitor : IDisposable
             if (_disposed) return new(PowerTotal.Unavailable, []);
             var devices = new List<PowerDevice>();
             var cpuIndices = new Dictionary<int, int>();
-            if (OpenComputer() is { } computer)
+            var pollGpu = !emiOnly && GpuPowerState.CanPoll();
+            if (!emiOnly && OpenComputer(pollGpu) is { } computer)
             {
                 foreach (var hardware in computer.Hardware)
                 {
@@ -34,15 +35,19 @@ internal sealed class HardwarePowerMonitor : IDisposable
             }
 
             AddWindowsReadings(devices, cpuIndices, _energyMeters.Read());
-            return new(PowerTotals.Calculate(devices), devices);
+            return new(PowerTotals.Calculate(devices), devices, !pollGpu);
         }
     }
 
-    private Computer? OpenComputer()
+    private Computer? OpenComputer(bool pollGpu)
     {
-        if (_computer is not null) return _computer;
+        if (_computer is not null)
+        {
+            if (_computer.IsGpuEnabled != pollGpu) _computer.IsGpuEnabled = pollGpu;
+            return _computer;
+        }
         if (Environment.TickCount64 < _retryAt) return null;
-        var computer = new Computer { IsCpuEnabled = true, IsGpuEnabled = true };
+        var computer = new Computer { IsCpuEnabled = true, IsGpuEnabled = pollGpu };
         try
         {
             computer.Open();

@@ -17,7 +17,7 @@ public sealed record PowerChartChoice(string? Id, string Label);
 public sealed partial class PowerView : UserControl
 {
     private const long BucketMilliseconds = 900_000;
-    private readonly HardwarePowerMonitor _monitor = new();
+    private readonly PowerWorkerClient _monitor = new();
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(5) };
     private readonly List<PowerReading> _points = [];
     private readonly Dictionary<string, string> _savedLabels = new(StringComparer.Ordinal);
@@ -62,7 +62,7 @@ public sealed partial class PowerView : UserControl
     internal void Close()
     {
         _timer.Stop();
-        _ = Task.Run(_monitor.Dispose);
+        _monitor.Dispose();
     }
 
     private async Task ReadAsync()
@@ -71,14 +71,14 @@ public sealed partial class PowerView : UserControl
         _reading = true;
         try
         {
-            HardwarePowerSample sample;
-            try { sample = await Task.Run(_monitor.Read); }
-            catch (Exception ex)
+            var sample = await _monitor.ReadAsync();
+            if (!_timer.IsEnabled) return;
+            if (sample is null)
             {
-                System.Diagnostics.Trace.WriteLine(ex);
+                _sample = null;
+                if (_visible) { RenderSample(); }
                 return;
             }
-            if (!_timer.IsEnabled) return;
             _sample = sample;
 
             var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
@@ -129,6 +129,7 @@ public sealed partial class PowerView : UserControl
         var total = _sample?.Total ?? PowerTotal.Unavailable;
         Total.Text = FormatWatts(total.Watts);
         Scope.Text = Strings.Get(total.IsCpuPartial ? "PowerSourcePartialCpu" : "PowerSource" + total.Source);
+        if (_sample?.GpuPollingPaused == true) Scope.Text += "\n" + Strings.Get("PowerGpuSuspended");
         WaitMessage.Text = Strings.Get(_sample is null ? "PowerReading" : "PowerNoReadings");
         var included = total.SensorIds.ToHashSet(StringComparer.Ordinal);
         var yes = Strings.Get("PowerYes");

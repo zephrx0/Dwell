@@ -19,9 +19,11 @@ public sealed record ResourcePeak(double Cpu, long Memory);
 
 public sealed class AppRepository : IDisposable
 {
-    private readonly SqliteConnection _connection;
+    private SqliteConnection _connection = null!;
     private readonly object _sync = new();
     private readonly Dictionary<string, AppRecord> _apps = new(StringComparer.OrdinalIgnoreCase);
+    private long _nextBackup;
+    internal DatabaseRecovery? Recovery { get; }
     private static readonly Dictionary<string, AppCategory> Categories = new(StringComparer.OrdinalIgnoreCase)
     {
         ["telegram.exe"] = AppCategory.Communication, ["discord.exe"] = AppCategory.Communication,
@@ -37,8 +39,21 @@ public sealed class AppRepository : IDisposable
     public AppRepository()
     {
         Directory.CreateDirectory(SettingsService.DataDirectory);
-        _connection = new(new SqliteConnectionStringBuilder { DataSource = Path.Combine(SettingsService.DataDirectory, "dwell.db"), Pooling = false }.ToString());
-        _connection.Open();
+        var path = Path.Combine(SettingsService.DataDirectory, "dwell.db");
+        if (!File.Exists(path) && UsageDatabaseBackup.HasBackup(path)) Recovery = UsageDatabaseBackup.Recover(path);
+        try { Initialize(path); }
+        catch (SqliteException ex) when (ex.SqliteErrorCode is 11 or 26 && Recovery is null)
+        {
+            _connection?.Dispose();
+            _apps.Clear();
+            Recovery = UsageDatabaseBackup.Recover(path);
+            Initialize(path);
+        }
+    }
+
+    private void Initialize(string path)
+    {
+        _connection = UsageDatabaseBackup.Open(path);
         using var command = _connection.CreateCommand();
         command.CommandText = """
             PRAGMA journal_mode=WAL;
@@ -70,6 +85,15 @@ public sealed class AppRepository : IDisposable
             var app = new AppRecord { Id = reader.GetInt64(0), Exe = reader.GetString(1), Name = reader.GetString(2), Icon = reader.GetString(3), Category = (AppCategory)reader.GetInt32(4), Ignored = reader.GetBoolean(5) };
             _apps[app.Exe] = app;
         }
+    }
+
+    internal void BackupIfDue()
+    {
+        if (Environment.TickCount64 < _nextBackup) return;
+        _nextBackup = Environment.TickCount64 + 60_000;
+        try { lock (_sync) UsageDatabaseBackup.SaveIfDue(_connection); }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or SqliteException)
+        { System.Diagnostics.Trace.WriteLine(ex); }
     }
 
     public AppRecord[] KnownApps() { lock (_sync) return _apps.Values.ToArray(); }

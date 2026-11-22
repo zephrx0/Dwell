@@ -44,6 +44,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File build.ps1
 
 The script builds Dwell, runs the tests, and puts `Dwell-Setup.exe` in a versioned folder under `artifacts`.
 
+To sign a release, install the publisher's code-signing certificate, put Windows SDK SignTool on PATH, and set `DWELL_SIGN_CERT_THUMBPRINT` to the certificate thumbprint before running the build. The script signs and verifies both the app and the installer.
+
 Hardware sensors are read through LibreHardwareMonitor. [Hardware sensor licenses](src/Dwell/HardwareSensorNotices.txt)
 
 Made by [zephrx0](https://github.com/zephrx0).

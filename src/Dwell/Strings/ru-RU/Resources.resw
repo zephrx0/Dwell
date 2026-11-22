@@ -320,6 +320,8 @@
   <data name="ExcludedAppsEmpty" xml:space="preserve"><value>Чтобы скрыть приложение из статистики, раскройте его строку в обзоре.</value></data>
   <data name="RestoreToStatistics" xml:space="preserve"><value>Вернуть в статистику</value></data>
   <data name="StorageStartupError" xml:space="preserve"><value>Не удалось открыть настройки или историю Dwell. Проверьте свободное место и доступ к папке. Если база повреждена, сохраните копию папки перед восстановлением.</value></data>
+  <data name="StorageRecovered" xml:space="preserve"><value>Dwell восстановил историю из резервной копии. Исходная база сохранена в этой папке.</value></data>
+  <data name="StorageRecoveredEmpty" xml:space="preserve"><value>Dwell создал новую базу истории. Повреждённая база сохранена в этой папке.</value></data>
   <data name="PowerPageTitle" xml:space="preserve"><value>Энергопотребление</value></data>
   <data name="PowerSensors" xml:space="preserve"><value>Показатели устройств</value></data>
   <data name="PowerDevice" xml:space="preserve"><value>Устройство и показатель</value></data>
@@ -334,6 +336,7 @@
   <data name="PowerSourceComponents" xml:space="preserve"><value>Сумма доступных замеров процессора и видеокарт</value></data>
   <data name="PowerSourcePartialCpu" xml:space="preserve"><value>Неполная сумма. Нет замера мощности всего процессора.</value></data>
   <data name="PowerReading" xml:space="preserve"><value>Считываем датчики…</value></data>
+  <data name="PowerGpuSuspended" xml:space="preserve"><value>Опрос видеокарт приостановлен.</value></data>
   <data name="PowerNoReadings" xml:space="preserve"><value>Нет доступных показаний мощности</value></data>
   <data name="PowerNoSensor" xml:space="preserve"><value>Датчик мощности недоступен</value></data>
 </root>

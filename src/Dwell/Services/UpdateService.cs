@@ -86,6 +86,7 @@ public sealed class UpdateService
             var installer = FileVersionInfo.GetVersionInfo(temporary);
             if (installer.ProductName?.TrimEnd() != "Dwell" || !Version.TryParse(installer.FileVersion, out var version) || version != update.Version)
                 throw new InvalidDataException("The installer version does not match the release.");
+            UpdateSignature.Check(temporary);
 
             File.Move(temporary, target, overwrite: true);
             return target;

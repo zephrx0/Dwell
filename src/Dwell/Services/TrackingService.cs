@@ -81,6 +81,7 @@ public sealed class TrackingService(ForegroundService foreground, AppRepository 
                         if (Environment.TickCount64 >= nextWrite)
                         {
                             Flush();
+                            repository.BackupIfDue();
                             nextWrite = Environment.TickCount64 + 30000;
                         }
                     }
