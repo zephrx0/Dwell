@@ -1,21 +1,17 @@
 using System.Runtime.InteropServices;
 using Dwell.Core;
 using LibreHardwareMonitor.Hardware;
-using LibreHardwareMonitor.Hardware.Storage;
-using Windows.Devices.Power;
-using Windows.System.Power;
 
 namespace Dwell.Services;
 
 internal sealed record HardwarePowerSample(
-    PowerTotal Total, IReadOnlyList<PowerDevice> Devices, double? BatteryWatts, IReadOnlyList<DiskActivity> DiskActivity);
+    PowerTotal Total, IReadOnlyList<PowerDevice> Devices);
 
 internal sealed class HardwarePowerMonitor : IDisposable
 {
     private readonly object _gate = new();
     private readonly WindowsEnergyMeters _energyMeters = new();
     private Computer? _computer;
-    private readonly WindowsDiskActivity _disks = new();
     private readonly Dictionary<string, PowerDeviceKind> _radeons = new();
     private long _retryAt;
     private bool _disposed;
@@ -24,9 +20,8 @@ internal sealed class HardwarePowerMonitor : IDisposable
     {
         lock (_gate)
         {
-            if (_disposed) return new(PowerTotal.Unavailable, [], null, []);
+            if (_disposed) return new(PowerTotal.Unavailable, []);
             var devices = new List<PowerDevice>();
-            var storageIndices = new Dictionary<uint, int>();
             var cpuIndices = new Dictionary<int, int>();
             if (OpenComputer() is { } computer)
             {
@@ -34,32 +29,12 @@ internal sealed class HardwarePowerMonitor : IDisposable
                 {
                     if (hardware.HardwareType == HardwareType.Cpu && int.TryParse(hardware.Identifier.ToString().Split('/')[^1], out var cpuIndex))
                         cpuIndices.TryAdd(cpuIndex, devices.Count);
-                    if (hardware is StorageDevice storage && storage.Storage.DriveNumber >= 0)
-                        storageIndices.TryAdd((uint)storage.Storage.DriveNumber, devices.Count);
                     ReadDevice(hardware, devices, includeWithoutSensors: true);
                 }
             }
 
             AddWindowsReadings(devices, cpuIndices, _energyMeters.Read());
-            var diskActivity = new List<DiskActivity>();
-            foreach (var disk in _disks.Read())
-            {
-                diskActivity.Add(new($"disk-activity:{disk.Id}", disk.Name, disk.Load?.ActiveFraction * 100));
-                if (!storageIndices.TryGetValue(disk.Index, out var index))
-                {
-                    index = devices.Count;
-                    devices.Add(new(disk.Name, PowerDeviceKind.Independent, []));
-                }
-
-                var device = devices[index];
-                if (disk.EstimatedWatts is { } watts && device.Sensors.All(x => x.Watts is null))
-                    devices[index] = device with
-                    {
-                        Sensors = [.. device.Sensors, new($"disk-estimate:{disk.Id}", "Disk power estimate", watts, PowerSensorKind.EstimatedDiskPower)]
-                    };
-            }
-            var battery = ReadBattery();
-            return new(PowerTotals.Calculate(devices, battery, battery is not null && PowerManager.PowerSupplyStatus == PowerSupplyStatus.NotPresent), devices, battery, diskActivity);
+            return new(PowerTotals.Calculate(devices), devices);
         }
     }
 
@@ -67,12 +42,7 @@ internal sealed class HardwarePowerMonitor : IDisposable
     {
         if (_computer is not null) return _computer;
         if (Environment.TickCount64 < _retryAt) return null;
-        var computer = new Computer
-        {
-            IsCpuEnabled = true, IsGpuEnabled = true, IsMemoryEnabled = true,
-            IsMotherboardEnabled = true, IsStorageEnabled = true, IsPsuEnabled = true,
-            IsBatteryEnabled = true, IsPowerMonitorEnabled = true
-        };
+        var computer = new Computer { IsCpuEnabled = true, IsGpuEnabled = true };
         try
         {
             computer.Open();
@@ -97,17 +67,15 @@ internal sealed class HardwarePowerMonitor : IDisposable
             HardwareType.GpuIntel when id.StartsWith("/gpu-intel-integrated/", StringComparison.Ordinal) => PowerDeviceKind.IntegratedGpu,
             HardwareType.GpuAmd => RadeonKind(id),
             HardwareType.GpuNvidia or HardwareType.GpuIntel => PowerDeviceKind.Gpu,
-            HardwareType.Psu => PowerDeviceKind.Supply,
-            HardwareType.Memory => PowerDeviceKind.Memory,
-            HardwareType.Storage or HardwareType.Cooler => PowerDeviceKind.Independent,
             _ => PowerDeviceKind.Other
         };
 
+        if (kind == PowerDeviceKind.Other) return;
         PowerSensor[] sensors = [];
         try
         {
             hardware.Update();
-            sensors = hardware.Sensors.Where(x => x.SensorType == SensorType.Power)
+            sensors = hardware.Sensors.Where(x => x.SensorType == SensorType.Power && x.Name is not ("CPU Memory" or "CPU Platform"))
                 .Select(x => ReadHardwareSensor(x, hardware.HardwareType == HardwareType.Cpu))
                 .ToArray();
             // LibreHardwareMonitor can expose an all-zero core set when it cannot read the CPU counters.
@@ -184,31 +152,18 @@ internal sealed class HardwarePowerMonitor : IDisposable
             if ((parts.Length != 3 && !coreChannel) || parts[0] != "RAPL" ||
                 !parts[1].StartsWith("Package", StringComparison.Ordinal) ||
                 !int.TryParse(parts[1].AsSpan(7), out var package))
-            {
-                devices.Add(new(reading.Device.Length > 0 ? reading.Device : "EMI", PowerDeviceKind.Other,
-                    [new(reading.Id, reading.Name, reading.Watts)]));
                 continue;
-            }
 
-            var packageName = parts[1];
             var domain = parts[2];
-            if (domain == "DRAM")
-            {
-                var memoryName = $"DRAM ({packageName})";
-                if (!devices.Any(x => x.Kind == PowerDeviceKind.RaplMemory && x.Name == memoryName))
-                    devices.Add(new(memoryName, PowerDeviceKind.RaplMemory, [new(reading.Id, "RAPL DRAM", reading.Watts)]));
-                continue;
-            }
-
             var name = domain switch
             {
                 "PKG" => "CPU Package",
                 "PP0" => "CPU Cores",
                 "PP1" => "CPU Graphics",
-                "PSYS" => "CPU Platform",
                 _ when coreChannel => domain + " (Windows)",
-                _ => reading.Name
+                _ => null
             };
+            if (name is null) continue;
             if (!cpuReadings.TryGetValue(package, out var sensors)) cpuReadings[package] = sensors = [];
             var kind = coreChannel ? PowerSensorKind.WindowsCpuCore : PowerSensorKind.Other;
             if (!sensors.Any(x => x.Name == name)) sensors.Add(new(reading.Id, name, reading.Watts, kind));
@@ -233,20 +188,6 @@ internal sealed class HardwarePowerMonitor : IDisposable
             devices[index] = device with { Sensors = sensors.ToArray() };
         }
     }
-
-    private static double? ReadBattery()
-    {
-        try
-        {
-            var report = Battery.AggregateBattery.GetReport();
-            return report.Status == BatteryStatus.Discharging && report.ChargeRateInMilliwatts is < 0 and var rate
-                ? rate / -1000d : null;
-        }
-        catch (Exception ex) when (SensorError(ex)) { return null; }
-    }
-
-    private static bool SensorError(Exception ex) => ex is IOException or UnauthorizedAccessException or System.Security.SecurityException
-        or ExternalException or InvalidOperationException or NotSupportedException or TypeInitializationException or DllNotFoundException;
 
     private static void CloseComputer(Computer computer)
     {

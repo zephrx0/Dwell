@@ -6,7 +6,32 @@ using Microsoft.Data.Sqlite;
 namespace Dwell.Services;
 
 internal sealed record PowerReading(long At, PowerTotal Total, Dictionary<string, double> Watts,
-    Dictionary<string, double>? DiskActivity = null);
+    bool CpuGpuOnly = false)
+{
+    public PowerReading ForCpuAndGpu(IReadOnlySet<string> currentIds, IReadOnlyDictionary<string, string> labels)
+    {
+        if (CpuGpuOnly) return this;
+
+        var watts = Watts.Where(x => IsCpuOrGpu(x.Key, currentIds, labels)).ToDictionary(StringComparer.Ordinal);
+        var included = Total.SensorIds.Where(watts.ContainsKey).ToArray();
+        var total = included.Length == 0 ? PowerTotal.Unavailable :
+            new PowerTotal(PowerSource.Components, included.Sum(id => watts[id]), included, Total.IsCpuPartial);
+        return new(At, total, watts, CpuGpuOnly: true);
+    }
+
+    private static bool IsCpuOrGpu(string id, IReadOnlySet<string> currentIds, IReadOnlyDictionary<string, string> labels)
+    {
+        if (currentIds.Contains(id)) return true;
+        var label = labels.GetValueOrDefault(id);
+        var sensor = label is null ? "" : label[(label.LastIndexOf('/') + 1)..].Trim();
+        if (sensor is "CPU Memory" or "CPU Platform") return false;
+        if (id.StartsWith("/gpu-", StringComparison.Ordinal) || id.StartsWith("/intelcpu/", StringComparison.Ordinal) ||
+            id.StartsWith("/amdcpu/", StringComparison.Ordinal) || id.StartsWith("/cpu/", StringComparison.Ordinal)) return true;
+        if (!id.StartsWith("emi:", StringComparison.Ordinal)) return false;
+        return sensor is "CPU Package" or "CPU Cores" or "CPU Graphics" ||
+            sensor.StartsWith("Core", StringComparison.Ordinal) && sensor.EndsWith(" (Windows)", StringComparison.Ordinal);
+    }
+}
 internal sealed record SavedPowerHistory(List<PowerReading> Readings, Dictionary<string, string> Labels);
 
 internal static class PowerUsageHistory
