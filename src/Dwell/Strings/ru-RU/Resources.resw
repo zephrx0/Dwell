@@ -341,4 +341,9 @@
   <data name="PowerNoSensor" xml:space="preserve"><value>Датчик мощности недоступен</value></data>
   <data name="PowerProcessorPackage" xml:space="preserve"><value>Мощность процессора</value></data>
   <data name="PowerProcessorCores" xml:space="preserve"><value>Мощность по доступным ядрам</value></data>
+  <data name="PowerGraphicsPower" xml:space="preserve"><value>Мощность видеокарты</value></data>
+  <data name="PowerGraphicsBoard" xml:space="preserve"><value>Мощность всей видеокарты</value></data>
+  <data name="PowerCpuNoWatts" xml:space="preserve"><value>Нет замера мощности процессора.</value></data>
+  <data name="PowerCpuLoad" xml:space="preserve"><value>Загрузка {0}%</value></data>
+  <data name="PowerCpuHelp" xml:space="preserve"><value>Как включить замер процессора</value></data>
 </root>

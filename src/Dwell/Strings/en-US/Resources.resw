@@ -341,6 +341,11 @@
   <data name="PowerGpuSuspended" xml:space="preserve"><value>GPU polling is paused.</value></data>
   <data name="PowerNoReadings" xml:space="preserve"><value>No power readings available</value></data>
   <data name="PowerNoSensor" xml:space="preserve"><value>Power sensor unavailable</value></data>
-  <data name="PowerProcessorPackage" xml:space="preserve"><value>CPU package power</value></data>
+  <data name="PowerProcessorPackage" xml:space="preserve"><value>CPU power</value></data>
   <data name="PowerProcessorCores" xml:space="preserve"><value>Measured core power</value></data>
+  <data name="PowerGraphicsPower" xml:space="preserve"><value>GPU power</value></data>
+  <data name="PowerGraphicsBoard" xml:space="preserve"><value>Total graphics board power</value></data>
+  <data name="PowerCpuNoWatts" xml:space="preserve"><value>No CPU power reading.</value></data>
+  <data name="PowerCpuLoad" xml:space="preserve"><value>{0}% utilization</value></data>
+  <data name="PowerCpuHelp" xml:space="preserve"><value>How to enable CPU power readings</value></data>
 </root>

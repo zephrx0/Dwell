@@ -104,7 +104,8 @@ internal sealed class WindowsEnergyMeters : IDisposable
                 BinaryPrimitives.ReadUInt32LittleEndian(sizeBuffer) is >= 68 and <= 16_384 and var size)
             {
                 var metadata = new byte[size];
-                if (ReadControl(handle, GetMetadata, metadata) >= metadata.Length && ParseMetadata(metadata, version) is { } parsed)
+                var bytesRead = ReadControl(handle, GetMetadata, metadata);
+                if (bytesRead >= 68 && bytesRead <= metadata.Length && ParseMetadata(metadata[..bytesRead], version) is { } parsed)
                     return new(path, parsed.Device, handle, parsed.Channels);
             }
         }

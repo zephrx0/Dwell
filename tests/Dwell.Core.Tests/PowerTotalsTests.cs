@@ -5,6 +5,14 @@ namespace Dwell.Core.Tests;
 
 public sealed class PowerTotalsTests
 {
+    [Fact]
+    public void GpuOnlySnapshotIsMarkedPartialWhenTheProcessorWasNotEnumerated()
+    {
+        var total = PowerTotals.Calculate([new("GTX 1650", PowerDeviceKind.Gpu, [new("gpu", "GPU Package", 2.5)])]);
+        Assert.Equal(2.5, total.Watts);
+        Assert.True(total.IsCpuPartial);
+    }
+
     [Theory]
     [InlineData("AMD Radeon Pro WX 7100")]
     [InlineData("AMD Radeon VII")]

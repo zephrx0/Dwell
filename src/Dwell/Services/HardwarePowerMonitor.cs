@@ -77,9 +77,15 @@ internal sealed class HardwarePowerMonitor(bool emiOnly = false) : IDisposable
 
         if (kind == PowerDeviceKind.Other) return;
         PowerSensor[] sensors = [];
+        double? loadPercent = null;
         try
         {
             hardware.Update();
+            if (hardware.HardwareType == HardwareType.Cpu)
+            {
+                var load = hardware.Sensors.FirstOrDefault(x => x.SensorType == SensorType.Load && x.Name == "CPU Total")?.Value;
+                if (load is >= 0 and <= 100) loadPercent = load;
+            }
             sensors = hardware.Sensors.Where(x => x.SensorType == SensorType.Power && x.Name is not ("CPU Memory" or "CPU Platform"))
                 .Select(x => ReadHardwareSensor(x, hardware.HardwareType == HardwareType.Cpu))
                 .ToArray();
@@ -91,7 +97,7 @@ internal sealed class HardwarePowerMonitor(bool emiOnly = false) : IDisposable
         catch (Exception ex) { System.Diagnostics.Trace.WriteLine(ex); }
 
         if (sensors.Length > 0 || (includeWithoutSensors && id != "/vram"))
-            devices.Add(new(hardware.Name, kind, sensors));
+            devices.Add(new(hardware.Name, kind, sensors, loadPercent));
         foreach (var child in hardware.SubHardware)
             ReadDevice(child, devices, includeWithoutSensors: false);
     }
@@ -151,23 +157,34 @@ internal sealed class HardwarePowerMonitor(bool emiOnly = false) : IDisposable
         var cpuReadings = new Dictionary<int, List<PowerSensor>>();
         foreach (var reading in readings.OrderByDescending(x => x.Watts.HasValue))
         {
-            var parts = reading.Name.Split('_');
-            var coreChannel = parts is ["RAPL", _, var core, "CORE"] && core.StartsWith("Core", StringComparison.Ordinal) &&
+            var parts = reading.Name.ToUpperInvariant().Split('_');
+            var coreChannel = parts is ["RAPL", _, var core, "CORE"] && core.StartsWith("CORE", StringComparison.Ordinal) &&
                 int.TryParse(core.AsSpan(4), out _);
-            if ((parts.Length != 3 && !coreChannel) || parts[0] != "RAPL" ||
-                !parts[1].StartsWith("Package", StringComparison.Ordinal) ||
-                !int.TryParse(parts[1].AsSpan(7), out var package))
-                continue;
-
-            var domain = parts[2];
-            var name = domain switch
+            var package = 0;
+            string? name;
+            if ((parts.Length == 3 || coreChannel) && parts[0] == "RAPL" &&
+                parts[1].StartsWith("PACKAGE", StringComparison.Ordinal) && int.TryParse(parts[1].AsSpan(7), out package))
             {
-                "PKG" => "CPU Package",
-                "PP0" => "CPU Cores",
-                "PP1" => "CPU Graphics",
-                _ when coreChannel => domain + " (Windows)",
-                _ => null
-            };
+                name = parts[2] switch
+                {
+                    "PKG" or "PACKAGE" => "CPU Package",
+                    "PP0" => "CPU Cores",
+                    "PP1" => "CPU Graphics",
+                    _ when coreChannel => "Core" + parts[2][4..] + " (Windows)",
+                    _ => null
+                };
+            }
+            else if (cpuIndices.Count == 1)
+            {
+                package = cpuIndices.Keys.Single();
+                name = reading.Name.ToUpperInvariant() switch
+                {
+                    "CPU PACKAGE" or "PROCESSOR PACKAGE" or "CPU PACKAGE POWER" => "CPU Package",
+                    "CPU CORES" or "CPU CORE POWER" => "CPU Cores",
+                    _ => null
+                };
+            }
+            else continue;
             if (name is null) continue;
             if (!cpuReadings.TryGetValue(package, out var sensors)) cpuReadings[package] = sensors = [];
             var kind = coreChannel ? PowerSensorKind.WindowsCpuCore : PowerSensorKind.Other;

@@ -22,7 +22,7 @@ Dwell работает в трее и показывает уведомлени�
 
 График показывает мощность процессора и видеокарт за последние 24 часа. Каждый столбец — среднее за 15 минут. Над графиком можно выбрать сумму или отдельный датчик. Нажми на строку процессора, чтобы открыть показания ядер.
 
-На некоторых ПК Windows не предоставляет доступ к счётчику мощности процессора. В таком случае Dwell показывает доступную загрузку в процентах и помечает сумму в ваттах как неполную. На x64 попробуй установить официальную подписанную версию PawnIO, если нужны показания мощности. Dwell обнаружит драйвер при следующей проверке. [Загрузить PawnIO с сайта разработчика](https://pawnio.eu/)
+На некоторых ПК Windows не предоставляет доступ к счётчику мощности процессора. В таком случае Dwell показывает доступную загрузку в процентах и помечает сумму в ваттах как неполную. На x64 официальная подписанная версия PawnIO может открыть доступ к датчику. Dwell обнаружит драйвер при следующей проверке. Если датчику нужны права администратора, закрой Dwell через трей и запусти его от имени администратора. [Загрузить PawnIO с сайта разработчика](https://pawnio.eu/)
 
 ## English
 
@@ -36,7 +36,7 @@ Run the installer on x64 Windows 10 version 1809 or later, or on Windows 11 with
 
 The chart shows CPU and GPU power over the last 24 hours. Each bar is a 15-minute average. Pick a sensor above the chart or expand the processor row to see its core readings.
 
-If Windows provides no CPU power counter, Dwell shows available CPU utilization as a percentage and marks the total in watts as incomplete. On x64, the official signed PawnIO driver can provide access to CPU power sensors on supported hardware. Dwell will pick up the driver on its next check. [Get PawnIO from its developer](https://pawnio.eu/)
+If Windows provides no CPU power counter, Dwell shows available CPU utilization as a percentage and marks the total in watts as incomplete. On x64, the official signed PawnIO driver can provide access to CPU power sensors on supported hardware. Dwell will pick up the driver on its next check. If the sensor requires administrator access, exit Dwell from the tray and run it as administrator. [Get PawnIO from its developer](https://pawnio.eu/)
 
 ## Build
 

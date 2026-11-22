@@ -32,6 +32,7 @@
           <StackPanel Spacing="4">
           <TextBlock x:Name="Total" FontSize="32" FontWeight="SemiBold" />
           <TextBlock x:Name="Scope" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+          <HyperlinkButton x:Name="CpuPowerHelp" Visibility="Collapsed" Padding="0,0,0,2" />
           </StackPanel>
           <ComboBox x:Name="ChartSource" Width="270" SelectionChanged="ChartSourceChanged">
             <ComboBox.ItemTemplate>

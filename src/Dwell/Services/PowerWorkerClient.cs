@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json;
+using Microsoft.Win32;
 
 namespace Dwell.Services;
 
@@ -11,6 +12,8 @@ internal sealed class PowerWorkerClient : IDisposable
     private bool _workerIsEmiOnly;
     private long _retryAt;
     private long _emiOnlyUntil;
+    private long _nextDriverCheck;
+    private bool _pawnIoInstalled;
 
     public async Task<HardwarePowerSample?> ReadAsync()
     {
@@ -22,6 +25,7 @@ internal sealed class PowerWorkerClient : IDisposable
             lock (_sync)
             {
                 if (_closed.IsCancellationRequested || Environment.TickCount64 < _retryAt) return null;
+                CheckForNewCpuDriver();
                 var emiOnly = Environment.TickCount64 < _emiOnlyUntil;
                 if (_worker is { HasExited: true } || _worker is not null && _workerIsEmiOnly != emiOnly) StopWorker();
                 worker = _worker ??= StartWorker(emiOnly);
@@ -45,6 +49,26 @@ internal sealed class PowerWorkerClient : IDisposable
             }
             return null;
         }
+    }
+
+    private void CheckForNewCpuDriver()
+    {
+        var now = Environment.TickCount64;
+        if (now < _nextDriverCheck) return;
+        _nextDriverCheck = now + 15_000;
+        try
+        {
+            using var service = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\PawnIO");
+            var installed = service is not null;
+            if (installed != _pawnIoInstalled)
+            {
+                StopWorker();
+                _emiOnlyUntil = 0;
+            }
+            _pawnIoInstalled = installed;
+        }
+        catch (Exception ex) when (ex is UnauthorizedAccessException or System.Security.SecurityException)
+        { Trace.WriteLine(ex); }
     }
 
     private static Process StartWorker(bool emiOnly)

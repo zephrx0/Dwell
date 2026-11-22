@@ -34,7 +34,7 @@ public sealed class SettingsService
     {
         Directory.CreateDirectory(DataDirectory);
         try { Current = JsonSerializer.Deserialize<UserSettings>(File.ReadAllText(_path)) ?? new(); }
-        catch (Exception ex) when (ex is IOException or JsonException) { Current = new(); }
+        catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException or JsonException) { Current = new(); }
         Current.IdleMinutes = Math.Clamp(Current.IdleMinutes, 1, 60);
         Current.Theme = Math.Clamp(Current.Theme, 0, 2);
         Current.Language = Math.Clamp(Current.Language, 0, 2);

@@ -5,7 +5,7 @@ public enum PowerSource { None, Components }
 public enum PowerSensorKind { Other, HardwareCpuCore, WindowsCpuCore }
 
 public sealed record PowerSensor(string Id, string Name, double? Watts, PowerSensorKind Kind = PowerSensorKind.Other);
-public sealed record PowerDevice(string Name, PowerDeviceKind Kind, PowerSensor[] Sensors);
+public sealed record PowerDevice(string Name, PowerDeviceKind Kind, PowerSensor[] Sensors, double? LoadPercent = null);
 public sealed record PowerTotal(PowerSource Source, double? Watts, string[] SensorIds, bool IsCpuPartial = false)
 {
     public static PowerTotal Unavailable { get; } = new(PowerSource.None, null, []);
@@ -28,7 +28,7 @@ public static class PowerTotals
         });
         var cpuReadings = cpu.SelectMany(x => x.Package is { } package ? [package] : FindCpuCores(x.Device));
         return Sum(PowerSource.Components, cpuReadings.Concat(components.OfType<PowerSensor>()),
-            isCpuPartial: cpu.Any(x => x.Package is null));
+            isCpuPartial: cpu.Length == 0 || cpu.Any(x => x.Package is null));
     }
 
     private static PowerSensor? FindCpuPackage(PowerDevice device) =>
