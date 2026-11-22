@@ -333,13 +333,17 @@
   <data name="PowerChartSource" xml:space="preserve"><value>На графике</value></data>
   <data name="PowerChartTotal" xml:space="preserve"><value>Процессор и видеокарты</value></data>
   <data name="PowerSourceNone" xml:space="preserve"><value>Мощность процессора и видеокарт</value></data>
-  <data name="PowerSourceComponents" xml:space="preserve"><value>Сумма доступных замеров процессора и видеокарт</value></data>
+  <data name="PowerSourceComponents" xml:space="preserve"><value>Сумма последних замеров процессора и видеокарт</value></data>
   <data name="PowerSourcePartialCpu" xml:space="preserve"><value>Неполная сумма. Нет замера мощности всего процессора.</value></data>
   <data name="PowerReading" xml:space="preserve"><value>Считываем датчики…</value></data>
   <data name="PowerGpuSuspended" xml:space="preserve"><value>Опрос видеокарт приостановлен.</value></data>
   <data name="PowerNoReadings" xml:space="preserve"><value>Нет доступных показаний мощности</value></data>
   <data name="PowerNoSensor" xml:space="preserve"><value>Датчик мощности недоступен</value></data>
   <data name="PowerProcessorPackage" xml:space="preserve"><value>Мощность процессора</value></data>
+  <data name="PowerProcessorPpt" xml:space="preserve"><value>Мощность процессора (PPT)</value></data>
+  <data name="PowerAverageSeconds" xml:space="preserve"><value>среднее за {0:0.0} с</value></data>
+  <data name="PowerWindowsMeterDetail" xml:space="preserve"><value>Счётчик энергии Windows ({0}), среднее за {1:0.0} с.</value></data>
+  <data name="PowerHardwareMeterDetail" xml:space="preserve"><value>Датчик {0} через LibreHardwareMonitor.</value></data>
   <data name="PowerProcessorCores" xml:space="preserve"><value>Мощность по доступным ядрам</value></data>
   <data name="PowerGraphicsPower" xml:space="preserve"><value>Мощность видеокарты</value></data>
   <data name="PowerGraphicsBoard" xml:space="preserve"><value>Мощность всей видеокарты</value></data>

@@ -5,7 +5,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace Dwell.Services;
 
-internal sealed record EnergyChannel(string Id, string Device, string Name, double? Watts);
+internal sealed record EnergyChannel(string Id, string Device, string Name, double? Watts, double? AverageSeconds);
 
 // Windows EMI returns cumulative energy in pWh and timestamps in 100 ns ticks.
 internal sealed class WindowsEnergyMeters : IDisposable
@@ -58,14 +58,14 @@ internal sealed class WindowsEnergyMeters : IDisposable
                 var energy = BinaryPrimitives.ReadUInt64LittleEndian(meter.Buffer.AsSpan(offset));
                 var time = BinaryPrimitives.ReadUInt64LittleEndian(meter.Buffer.AsSpan(offset + 8));
                 ref var previous = ref meter.Previous[channel];
-                var watts = UpdateCounter(ref previous, new Counter(energy, time, now));
-                readings.Add(new($"emi:{meter.Path}/{channel}", meter.Name, name, watts));
+                var measurement = UpdateCounter(ref previous, new Counter(energy, time, now));
+                readings.Add(new($"emi:{meter.Path}/{channel}", meter.Name, name, measurement?.Watts, measurement?.Seconds));
             }
         }
         return readings;
     }
 
-    private static double? UpdateCounter(ref Counter previous, Counter current)
+    private static (double Watts, double Seconds)? UpdateCounter(ref Counter previous, Counter current)
     {
         // Keep the original baseline while a driver repeats the same measurement.
         if (current.Time == previous.Time) return null;
@@ -78,7 +78,8 @@ internal sealed class WindowsEnergyMeters : IDisposable
             current.Energy < baseline.Energy || current.Time - baseline.Time > MaxSampleGap)
             return null;
 
-        return 0.036 * (current.Energy - baseline.Energy) / (current.Time - baseline.Time);
+        var ticks = current.Time - baseline.Time;
+        return (0.036 * (current.Energy - baseline.Energy) / ticks, ticks / (double)TimeSpan.TicksPerSecond);
     }
 
     private static string[] FindInterfaces()

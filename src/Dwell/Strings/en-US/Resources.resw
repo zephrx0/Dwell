@@ -335,13 +335,17 @@
   <data name="PowerChartSource" xml:space="preserve"><value>Chart reading</value></data>
   <data name="PowerChartTotal" xml:space="preserve"><value>CPU and GPUs</value></data>
   <data name="PowerSourceNone" xml:space="preserve"><value>CPU and GPU power</value></data>
-  <data name="PowerSourceComponents" xml:space="preserve"><value>Sum of available CPU and GPU readings</value></data>
+  <data name="PowerSourceComponents" xml:space="preserve"><value>Sum of the latest CPU and GPU readings</value></data>
   <data name="PowerSourcePartialCpu" xml:space="preserve"><value>Partial total. CPU package power is unavailable.</value></data>
   <data name="PowerReading" xml:space="preserve"><value>Reading sensors…</value></data>
   <data name="PowerGpuSuspended" xml:space="preserve"><value>GPU polling is paused.</value></data>
   <data name="PowerNoReadings" xml:space="preserve"><value>No power readings available</value></data>
   <data name="PowerNoSensor" xml:space="preserve"><value>Power sensor unavailable</value></data>
   <data name="PowerProcessorPackage" xml:space="preserve"><value>CPU power</value></data>
+  <data name="PowerProcessorPpt" xml:space="preserve"><value>CPU power (PPT)</value></data>
+  <data name="PowerAverageSeconds" xml:space="preserve"><value>{0:0.0} s average</value></data>
+  <data name="PowerWindowsMeterDetail" xml:space="preserve"><value>Windows energy meter ({0}), {1:0.0} s average.</value></data>
+  <data name="PowerHardwareMeterDetail" xml:space="preserve"><value>{0} sensor via LibreHardwareMonitor.</value></data>
   <data name="PowerProcessorCores" xml:space="preserve"><value>Measured core power</value></data>
   <data name="PowerGraphicsPower" xml:space="preserve"><value>GPU power</value></data>
   <data name="PowerGraphicsBoard" xml:space="preserve"><value>Total graphics board power</value></data>

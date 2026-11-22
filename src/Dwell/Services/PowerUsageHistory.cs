@@ -6,7 +6,7 @@ using Microsoft.Data.Sqlite;
 namespace Dwell.Services;
 
 internal sealed record PowerReading(long At, PowerTotal Total, Dictionary<string, double> Watts,
-    bool CpuGpuOnly = false)
+    bool CpuGpuOnly = false, double DurationSeconds = 5)
 {
     public PowerReading ForCpuAndGpu(IReadOnlySet<string> currentIds, IReadOnlyDictionary<string, string> labels)
     {
@@ -16,7 +16,7 @@ internal sealed record PowerReading(long At, PowerTotal Total, Dictionary<string
         var included = Total.SensorIds.Where(watts.ContainsKey).ToArray();
         var total = included.Length == 0 ? PowerTotal.Unavailable :
             new PowerTotal(PowerSource.Components, included.Sum(id => watts[id]), included, Total.IsCpuPartial);
-        return new(At, total, watts, CpuGpuOnly: true);
+        return new(At, total, watts, CpuGpuOnly: true, DurationSeconds);
     }
 
     private static bool IsCpuOrGpu(string id, IReadOnlySet<string> currentIds, IReadOnlyDictionary<string, string> labels)
@@ -30,6 +30,21 @@ internal sealed record PowerReading(long At, PowerTotal Total, Dictionary<string
         if (!id.StartsWith("emi:", StringComparison.Ordinal)) return false;
         return sensor is "CPU Package" or "CPU Cores" or "CPU Graphics" ||
             sensor.StartsWith("Core", StringComparison.Ordinal) && sensor.EndsWith(" (Windows)", StringComparison.Ordinal);
+    }
+
+    // Measured intervals can use different cadences. Weight each sample by the time it represents.
+    public static double? Average(IEnumerable<PowerReading> bucket, Func<PowerReading, double?> value)
+    {
+        var seconds = 0d;
+        var sum = 0d;
+        foreach (var reading in bucket)
+        {
+            if (value(reading) is not { } watts) continue;
+            var duration = reading.DurationSeconds is > 0 and <= 10 ? reading.DurationSeconds : 5;
+            seconds += duration;
+            sum += watts * duration;
+        }
+        return seconds > 0 ? sum / seconds : null;
     }
 }
 internal sealed record SavedPowerHistory(List<PowerReading> Readings, Dictionary<string, string> Labels);

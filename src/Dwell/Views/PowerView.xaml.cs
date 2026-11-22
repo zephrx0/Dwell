@@ -14,7 +14,7 @@ using SkiaSharp;
 
 namespace Dwell.Views;
 
-public sealed record PowerSensorRow(string Device, string Sensor, string Wattage, string Included)
+public sealed record PowerSensorRow(string Device, string Sensor, string Wattage, string Included, string MeasurementDetail = "")
 {
     public Visibility DeviceVisibility => Device.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
 }
@@ -25,6 +25,7 @@ public sealed partial class PowerProcessorRow(string name) : ObservableObject
     [ObservableProperty] public partial string Sensor { get; set; } = "";
     [ObservableProperty] public partial string Wattage { get; set; } = "";
     [ObservableProperty] public partial string Included { get; set; } = "";
+    [ObservableProperty] public partial string MeasurementDetail { get; set; } = "";
     [ObservableProperty] public partial PowerSensorRow[] Details { get; set; } = [];
     [ObservableProperty] public partial bool IsExpanded { get; set; }
 }
@@ -34,8 +35,10 @@ public sealed record PowerChartChoice(string? Id, string Label);
 public sealed partial class PowerView : UserControl
 {
     private const long BucketMilliseconds = 900_000;
+    private static readonly TimeSpan BackgroundInterval = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan LiveInterval = TimeSpan.FromSeconds(2);
     private readonly PowerWorkerClient _monitor = new();
-    private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(5) };
+    private readonly DispatcherTimer _timer = new() { Interval = BackgroundInterval };
     private readonly List<PowerReading> _points = [];
     private readonly Dictionary<string, string> _savedLabels = new(StringComparer.Ordinal);
     private readonly ObservableCollection<PowerProcessorRow> _processors = [];
@@ -47,6 +50,7 @@ public sealed partial class PowerView : UserControl
     private bool _visible;
     private bool _loadedHistory;
     private bool _reading;
+    private long _lastSampleTime;
 
     public PowerView()
     {
@@ -63,6 +67,7 @@ public sealed partial class PowerView : UserControl
 
     internal void Start()
     {
+        if (!_visible) _timer.Interval = LiveInterval;
         _visible = true;
         RenderSample();
     }
@@ -75,6 +80,7 @@ public sealed partial class PowerView : UserControl
 
     internal void Stop()
     {
+        if (_visible) _timer.Interval = BackgroundInterval;
         _visible = false;
     }
 
@@ -95,19 +101,24 @@ public sealed partial class PowerView : UserControl
             if (sample is null)
             {
                 _sample = null;
+                _lastSampleTime = 0;
                 if (_visible) { RenderSample(); }
                 return;
             }
             _sample = sample;
 
             var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            var sampleTime = System.Diagnostics.Stopwatch.GetTimestamp();
+            var elapsed = System.Diagnostics.Stopwatch.GetElapsedTime(_lastSampleTime, sampleTime).TotalSeconds;
+            var duration = _lastSampleTime != 0 && elapsed is > 0 and <= 10 ? elapsed : _timer.Interval.TotalSeconds;
+            _lastSampleTime = sampleTime;
             var sensors = sample.Devices.SelectMany(device => device.Sensors
                 .Where(sensor => sensor.Watts.HasValue)
                 .Select(sensor => (sensor, Label: $"{device.Name} / {sensor.Name}"))).DistinctBy(x => x.sensor.Id).ToArray();
             var watts = sensors.ToDictionary(x => x.sensor.Id, x => x.sensor.Watts!.Value, StringComparer.Ordinal);
             var labels = sensors.Where(x => _savedLabels.GetValueOrDefault(x.sensor.Id) != x.Label)
                 .ToDictionary(x => x.sensor.Id, x => x.Label, StringComparer.Ordinal);
-            var reading = new PowerReading(now, sample.Total, watts, CpuGpuOnly: true);
+            var reading = new PowerReading(now, sample.Total, watts, CpuGpuOnly: true, DurationSeconds: duration);
             try
             {
                 var previous = await Task.Run(() => PowerUsageHistory.Save(reading, labels, !_loadedHistory));
@@ -170,7 +181,8 @@ public sealed partial class PowerView : UserControl
             foreach (var sensor in device.Sensors)
             {
                 if (!isProcessor)
-                    rows.Add(new(device.Name, SensorLabel(sensor.Name), FormatWatts(sensor.Watts), included.Contains(sensor.Id) ? yes : ""));
+                    rows.Add(new(device.Name, SensorLabel(sensor.Name), FormatWatts(sensor.Watts),
+                        included.Contains(sensor.Id) ? yes : "", MeasurementDetail(sensor)));
                 if (chartIds.Remove(sensor.Id))
                     choices.Add(new(sensor.Id, $"{device.Name} / {SensorLabel(sensor.Name)}"));
             }
@@ -188,6 +200,7 @@ public sealed partial class PowerView : UserControl
                 processor.Sensor = Strings.Get("PowerReading");
                 processor.Wattage = FormatWatts(null);
                 processor.Included = "";
+                processor.MeasurementDetail = "";
                 processor.Details = [];
             }
         }
@@ -217,19 +230,31 @@ public sealed partial class PowerView : UserControl
             selected.Length > 0 ? "PowerProcessorCores" : "PowerCpuNoWatts");
         if (selected.Length == 0 && device.LoadPercent is { } load)
             row.Sensor += " " + Strings.Format("PowerCpuLoad", Math.Round(load));
+        if (package?.AverageSeconds is { } seconds)
+            row.Sensor += ", " + Strings.Format("PowerAverageSeconds", seconds);
+        row.MeasurementDetail = selected.Length == 1 ? MeasurementDetail(selected[0]) : "";
         row.Wattage = FormatWatts(selected.Length > 0 ? selected.Sum(sensor => sensor.Watts) : null);
         row.Included = selected.Length > 0 ? yes : "";
         row.Details = device.Sensors
             .Where(sensor => sensor.Watts.HasValue && sensor.Id != package?.Id)
             .OrderBy(sensor => sensor.Name, StringComparer.Create(Strings.Culture, CompareOptions.NumericOrdering))
-            .Select(sensor => new PowerSensorRow("", sensor.Name, FormatWatts(sensor.Watts), ""))
+            .Select(sensor => new PowerSensorRow("", SensorLabel(sensor.Name), FormatWatts(sensor.Watts), "", MeasurementDetail(sensor)))
             .ToArray();
         return selected.Length == 0;
     }
 
+    private static string MeasurementDetail(PowerSensor sensor)
+    {
+        if (sensor.Watts is null) return "";
+        return sensor.AverageSeconds is { } seconds
+            ? Strings.Format("PowerWindowsMeterDetail", sensor.Name, seconds)
+            : Strings.Format("PowerHardwareMeterDetail", sensor.Name);
+    }
+
     private static string SensorLabel(string name) => name switch
     {
-        "CPU Package" or "Package" or "CPU PPT" => Strings.Get("PowerProcessorPackage"),
+        "CPU Package" or "Package" => Strings.Get("PowerProcessorPackage"),
+        "CPU PPT" => Strings.Get("PowerProcessorPpt"),
         "GPU Package" or "GPU Power" => Strings.Get("PowerGraphicsPower"),
         "GPU Total" or "GPU Board Power" => Strings.Get("PowerGraphicsBoard"),
         _ => name
@@ -266,7 +291,7 @@ public sealed partial class PowerView : UserControl
         _timeAxis.CustomSeparators = ticks.Where(x => (firstBucket + x) % 12 == 0).Select(x => (double)x).ToArray();
         _timeAxis.Labeler = Label;
         Rectangle[] colors = [Swatch0, Swatch1, Swatch2, Swatch3, Swatch4];
-        var averages = ticks.Select(x => bucketed[x].Average(p => p.Total.Watts)).ToArray();
+        var averages = ticks.Select(x => PowerReading.Average(bucketed[x], p => p.Total.Watts)).ToArray();
         string TooltipLabel(double index)
         {
             var text = Label(index);
@@ -285,7 +310,7 @@ public sealed partial class PowerView : UserControl
         };
         static double? SensorValue(PowerReading sample, string id) => sample.Watts.TryGetValue(id, out var value) ? value : null;
         if (selected.Id is { } id)
-            Chart.Series = [Series(selected.Label, 0, ticks.Select(x => bucketed[x].Average(p => SensorValue(p, id))).ToArray())];
+            Chart.Series = [Series(selected.Label, 0, ticks.Select(x => PowerReading.Average(bucketed[x], p => SensorValue(p, id))).ToArray())];
         else
         {
             var ids = _points.SelectMany(x => x.Total.SensorIds).Distinct().Order(StringComparer.Ordinal).ToArray();
@@ -306,16 +331,15 @@ public sealed partial class PowerView : UserControl
 
     private static double? Contribution(IEnumerable<PowerReading> bucket, string id)
     {
-        var measured = 0;
-        double? sum = null;
-        foreach (var reading in bucket)
+        var included = false;
+        var average = PowerReading.Average(bucket, reading =>
         {
-            if (reading.Total.Watts is null) continue;
-            measured++;
-            if (reading.Total.SensorIds.Contains(id) && reading.Watts.TryGetValue(id, out var watts))
-                sum = (sum ?? 0) + watts;
-        }
-        return sum / measured;
+            if (reading.Total.Watts is null) return null;
+            if (!reading.Total.SensorIds.Contains(id) || !reading.Watts.TryGetValue(id, out var watts)) return 0;
+            included = true;
+            return watts;
+        });
+        return included ? average : null;
     }
 
     private void ApplyChartTheme()
