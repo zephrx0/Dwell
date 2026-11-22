@@ -256,8 +256,6 @@ public sealed partial class PowerView : UserControl
             selected.Length > 0 ? "PowerProcessorCores" : "PowerCpuNoWatts");
         if (selected.Length == 0 && device.LoadPercent is { } load)
             row.Sensor += " " + Strings.Format("PowerCpuLoad", Math.Round(load));
-        if (package?.AverageSeconds is { } seconds)
-            row.Sensor += ", " + Strings.Format("PowerAverageSeconds", seconds);
         row.MeasurementDetail = selected.Length == 1 ? MeasurementDetail(selected[0]) : "";
         row.Wattage = FormatWatts(selected.Length > 0 ? selected.Sum(sensor => sensor.Watts) : null);
         row.Included = selected.Length > 0 ? yes : "";

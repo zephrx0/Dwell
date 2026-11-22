@@ -343,7 +343,6 @@
   <data name="PowerNoSensor" xml:space="preserve"><value>Power sensor unavailable</value></data>
   <data name="PowerProcessorPackage" xml:space="preserve"><value>CPU power</value></data>
   <data name="PowerProcessorPpt" xml:space="preserve"><value>CPU power (PPT)</value></data>
-  <data name="PowerAverageSeconds" xml:space="preserve"><value>{0:0.0} s average</value></data>
   <data name="PowerWindowsMeterDetail" xml:space="preserve"><value>Windows energy meter ({0}), {1:0.0} s average.</value></data>
   <data name="PowerHardwareMeterDetail" xml:space="preserve"><value>{0} sensor via LibreHardwareMonitor.</value></data>
   <data name="PowerProcessorCores" xml:space="preserve"><value>Measured core power</value></data>

@@ -341,7 +341,6 @@
   <data name="PowerNoSensor" xml:space="preserve"><value>Датчик мощности недоступен</value></data>
   <data name="PowerProcessorPackage" xml:space="preserve"><value>Потребление центрального процессора</value></data>
   <data name="PowerProcessorPpt" xml:space="preserve"><value>Потребление центрального процессора (PPT)</value></data>
-  <data name="PowerAverageSeconds" xml:space="preserve"><value>среднее за {0:0.0} с</value></data>
   <data name="PowerWindowsMeterDetail" xml:space="preserve"><value>Счётчик энергии Windows ({0}), среднее за {1:0.0} с.</value></data>
   <data name="PowerHardwareMeterDetail" xml:space="preserve"><value>Датчик {0} через LibreHardwareMonitor.</value></data>
   <data name="PowerProcessorCores" xml:space="preserve"><value>Мощность по доступным ядрам</value></data>
