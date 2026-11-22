@@ -6,7 +6,7 @@
         <ResourceDictionary x:Key="Light">
           <SolidColorBrush x:Key="DwellWindowBrush" Color="#EEF1F5" />
           <SolidColorBrush x:Key="DwellChartBrush" Color="#FBFCFD" />
-          <SolidColorBrush x:Key="DwellCardBrush" Color="#FBFCFD" />
+          <SolidColorBrush x:Key="DwellCardBrush" Color="#BFFFFFFF" />
           <SolidColorBrush x:Key="DwellBorderBrush" Color="#BBC5D1" />
           <SolidColorBrush x:Key="DwellDividerBrush" Color="#D7DEE6" />
 
@@ -41,7 +41,15 @@
           <SolidColorBrush x:Key="DwellOtherBrush" Color="{ThemeResource SystemColorHighlightColor}" />
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
-      <CornerRadius x:Key="ControlCornerRadius">8</CornerRadius>
+      <CornerRadius x:Key="ControlCornerRadius">4</CornerRadius>
+      <Thickness x:Key="DwellPagePadding">24,16,24,24</Thickness>
+      <x:Double x:Key="DwellPageMaxWidth">1168</x:Double>
+      <Style x:Key="DwellCardStyle" TargetType="Border">
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Background" Value="{ThemeResource DwellCardBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource DwellBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+      </Style>
       <views:BoolVisibilityConverter x:Key="BoolVisibility" />
       <views:CategoryVisibilityConverter x:Key="CategoryVisibility" />
       <views:TextVisibilityConverter x:Key="TextVisibility" />

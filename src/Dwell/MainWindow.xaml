@@ -5,10 +5,10 @@
         <ResourceDictionary.ThemeDictionaries>
           <ResourceDictionary x:Key="Light">
             <SolidColorBrush x:Key="DwellControlBorderBrush" Color="#8392A4" />
-            <SolidColorBrush x:Key="NavigationViewContentBackground" Color="#F6F7F9" />
+            <SolidColorBrush x:Key="NavigationViewContentBackground" Color="Transparent" />
             <SolidColorBrush x:Key="NavigationViewItemBackgroundSelected" Color="#DCE6F0" />
             <SolidColorBrush x:Key="NavigationViewItemBackgroundSelectedPointerOver" Color="#D1DFEC" />
-            <StaticResource x:Key="NavigationViewDefaultPaneBackground" ResourceKey="DwellWindowBrush" />
+            <StaticResource x:Key="NavigationViewDefaultPaneBackground" ResourceKey="AcrylicInAppFillColorDefaultBrush" />
             <StaticResource x:Key="NavigationViewContentGridBorderBrush" ResourceKey="DwellBorderBrush" />
             <StaticResource x:Key="NavigationViewSelectionIndicatorForeground" ResourceKey="DwellCommunicationBrush" />
             <StaticResource x:Key="SelectorBarItemPillFill" ResourceKey="DwellCommunicationBrush" />
@@ -44,6 +44,15 @@
             <StaticResource x:Key="ExpanderHeaderBorderBrush" ResourceKey="SystemColorButtonTextColorBrush" />
           </ResourceDictionary>
         </ResourceDictionary.ThemeDictionaries>
+        <Style x:Key="SettingsRowStyle" TargetType="Grid">
+          <Setter Property="MinHeight" Value="56" />
+          <Setter Property="Padding" Value="16,10" />
+          <Setter Property="ColumnSpacing" Value="12" />
+        </Style>
+        <Style x:Key="SettingsLabelStyle" TargetType="TextBlock">
+          <Setter Property="VerticalAlignment" Value="Center" />
+          <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
       </ResourceDictionary>
     </UserControl.Resources>
     <Grid x:Name="Root">
@@ -64,8 +73,12 @@
           </VisualState>
         </VisualStateGroup>
       </VisualStateManager.VisualStateGroups>
-      <Grid x:Name="FallbackSurface" Background="{ThemeResource DwellWindowBrush}" />
-      <NavigationView x:Name="Navigation" IsBackButtonVisible="Collapsed" IsSettingsVisible="False" PaneDisplayMode="Auto" OpenPaneLength="224" CompactModeThresholdWidth="0" ExpandedModeThresholdWidth="980" SelectionChanged="NavigationChanged">
+      <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+      <Grid x:Name="FallbackSurface" Grid.RowSpan="2" Background="{ThemeResource DwellWindowBrush}" />
+      <TitleBar x:Name="AppTitleBar" Visibility="Collapsed">
+        <TitleBar.IconSource><ImageIconSource ImageSource="ms-appx:///Assets/Dwell.png" /></TitleBar.IconSource>
+      </TitleBar>
+      <NavigationView x:Name="Navigation" Grid.Row="1" IsBackButtonVisible="Collapsed" IsSettingsVisible="False" PaneDisplayMode="Auto" OpenPaneLength="224" CompactModeThresholdWidth="0" ExpandedModeThresholdWidth="980" SelectionChanged="NavigationChanged">
         <NavigationView.MenuItems>
           <NavigationViewItem x:Name="OverviewItem" x:Uid="OverviewNav" Tag="overview" Icon="ViewAll" IsSelected="True" />
           <NavigationViewItem x:Name="ActivityItem" Tag="activity" Icon="Clock" />
@@ -77,8 +90,8 @@
         </NavigationView.MenuItems>
         <NavigationView.FooterMenuItems><NavigationViewItem x:Name="SettingsItem" x:Uid="SettingsNav" Tag="settings" Icon="Setting" /></NavigationView.FooterMenuItems>
         <Grid>
-          <ScrollViewer x:Name="OverviewScroll" HorizontalScrollBarVisibility="Disabled">
-            <StackPanel Padding="16,12,16,16" Spacing="12" DataContext="{x:Bind Overview}">
+          <ScrollViewer x:Name="OverviewScroll" MaxWidth="{StaticResource DwellPageMaxWidth}" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Padding="{StaticResource DwellPagePadding}" Spacing="12" DataContext="{x:Bind Overview}">
               <StackPanel Spacing="8">
                 <views:InlineWrapPanel ColumnSpacing="12">
                   <StackPanel Orientation="Horizontal" Spacing="6">
@@ -105,7 +118,7 @@
                 <Grid.ColumnDefinitions><ColumnDefinition x:Name="DashboardLeft" Width="*" /><ColumnDefinition x:Name="DashboardRight" Width="0" /></Grid.ColumnDefinitions>
                 <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
                 <StackPanel Spacing="8">
-                  <Border CornerRadius="12" Padding="8" Background="{ThemeResource DwellChartBrush}" BorderBrush="{ThemeResource DwellBorderBrush}" BorderThickness="1"
+                  <Border Style="{StaticResource DwellCardStyle}" Padding="8" Background="{ThemeResource DwellChartBrush}"
                           Visibility="{Binding HasData, Converter={StaticResource BoolVisibility}}">
                     <StackPanel Spacing="4">
                       <ContentControl x:Name="ChartHost" HorizontalContentAlignment="Stretch" />
@@ -145,7 +158,7 @@
                 </StackPanel>
               <StackPanel x:Name="AppSection" Grid.Row="1" Spacing="12">
                 <StackPanel Spacing="8" Visibility="{Binding HasApps, Converter={StaticResource BoolVisibility}}">
-                <Border CornerRadius="12" Background="{ThemeResource DwellCardBrush}" BorderBrush="{ThemeResource DwellBorderBrush}" BorderThickness="1">
+                <Border Style="{StaticResource DwellCardStyle}">
                   <StackPanel>
                     <TextBlock x:Name="MostUsedHeading" x:Uid="MostUsedTitle" FontSize="16" FontWeight="SemiBold" Margin="16,8,16,2" />
                     <ItemsControl ItemsSource="{x:Bind Overview.Apps}">
@@ -203,52 +216,91 @@
               <TextBlock Text="{Binding Error}" Visibility="{Binding Error, Converter={StaticResource TextVisibility}}" TextWrapping="Wrap" Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
             </StackPanel>
           </ScrollViewer>
-          <views:ActivityView x:Name="HistoryPage" DataContext="{x:Bind Activity}" Visibility="Collapsed" />
-          <views:RulesView x:Name="LimitsPage" DataContext="{x:Bind Rules}" Visibility="Collapsed" />
-          <ContentControl x:Name="PowerHost" Visibility="Collapsed" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" />
-          <ScrollViewer x:Name="ExcludedAppsScroll" Visibility="Collapsed" HorizontalScrollBarVisibility="Disabled">
-            <StackPanel Padding="16,12,16,16" Spacing="12" MaxWidth="640" HorizontalAlignment="Left" DataContext="{x:Bind ExcludedApps}">
+          <views:ActivityView x:Name="HistoryPage" MaxWidth="{StaticResource DwellPageMaxWidth}" DataContext="{x:Bind Activity}" Visibility="Collapsed" />
+          <views:RulesView x:Name="LimitsPage" MaxWidth="{StaticResource DwellPageMaxWidth}" DataContext="{x:Bind Rules}" Visibility="Collapsed" />
+          <ContentControl x:Name="PowerHost" MaxWidth="{StaticResource DwellPageMaxWidth}" Visibility="Collapsed" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" />
+          <ScrollViewer x:Name="ExcludedAppsScroll" MaxWidth="{StaticResource DwellPageMaxWidth}" Visibility="Collapsed" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Padding="{StaticResource DwellPagePadding}" Spacing="12" DataContext="{x:Bind ExcludedApps}">
               <TextBlock x:Name="ExcludedAppsHeading" FontSize="24" FontWeight="SemiBold" />
               <TextBlock x:Name="ExcludedAppsEmpty" Visibility="{Binding HasApps, Converter={StaticResource BoolVisibility}, ConverterParameter=Invert}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
               <ItemsControl ItemsSource="{Binding Apps}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate x:DataType="vm:ExcludedAppItem">
-                    <Grid ColumnSpacing="12" Padding="12,8" Margin="0,0,0,6" CornerRadius="6" Background="{ThemeResource DwellCardBrush}"
-                          BorderBrush="{ThemeResource DwellBorderBrush}" BorderThickness="1">
-                      <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                      <StackPanel Spacing="2" VerticalAlignment="Center">
-                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{Binding Name}" />
-                        <TextBlock Text="{Binding Executable}" FontSize="12" TextTrimming="CharacterEllipsis" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                      </StackPanel>
-                      <Button Grid.Column="1" Content="{Binding RestoreLabel}" Click="RestoreAppClicked" VerticalAlignment="Center" />
-                    </Grid>
+                    <Border Style="{StaticResource DwellCardStyle}" Margin="0,0,0,6">
+                      <Grid ColumnSpacing="12" Padding="16,10" MinHeight="56">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel Spacing="2" VerticalAlignment="Center">
+                          <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{Binding Name}" />
+                          <TextBlock Text="{Binding Executable}" FontSize="12" TextTrimming="CharacterEllipsis" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="{Binding RestoreLabel}" Click="RestoreAppClicked" VerticalAlignment="Center" />
+                      </Grid>
+                    </Border>
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>
               </ItemsControl>
               <TextBlock Text="{Binding Error}" Visibility="{Binding Error, Converter={StaticResource TextVisibility}}" Foreground="{ThemeResource SystemFillColorCriticalBrush}" TextWrapping="Wrap" />
             </StackPanel>
           </ScrollViewer>
-          <ScrollViewer x:Name="SettingsScroll" Visibility="Collapsed" HorizontalScrollBarVisibility="Disabled">
-            <StackPanel Padding="16,12,16,16" Spacing="12" DataContext="{x:Bind Settings}">
+          <ScrollViewer x:Name="SettingsScroll" MaxWidth="{StaticResource DwellPageMaxWidth}" Visibility="Collapsed" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Padding="{StaticResource DwellPagePadding}" Spacing="12" DataContext="{x:Bind Settings}">
               <TextBlock x:Name="SettingsHeading" x:Uid="SettingsTitle" FontSize="24" FontWeight="SemiBold" />
-              <views:InlineWrapPanel ColumnSpacing="16" RowSpacing="12">
-              <ComboBox x:Name="ThemeCombo" x:Uid="ThemeCombo" Width="240" SelectedIndex="{x:Bind Settings.ThemeIndex, Mode=TwoWay}"><ComboBoxItem x:Name="SystemThemeItem" x:Uid="SystemTheme" /><ComboBoxItem x:Name="LightThemeItem" x:Uid="LightTheme" /><ComboBoxItem x:Name="DarkThemeItem" x:Uid="DarkTheme" /></ComboBox>
-              <ComboBox x:Name="LanguageCombo" x:Uid="LanguageCombo" Width="240" SelectedIndex="{x:Bind Settings.LanguageIndex, Mode=TwoWay}"><ComboBoxItem x:Name="SystemLanguageItem" x:Uid="SystemLanguage" /><ComboBoxItem x:Uid="RussianLanguage" /><ComboBoxItem x:Uid="EnglishLanguage" /></ComboBox>
-              <NumberBox x:Name="IdleInput" x:Uid="IdleMinutes" Width="240" HorizontalAlignment="Left" Minimum="1" Maximum="60" SmallChange="1" SpinButtonPlacementMode="Inline" Value="{x:Bind Settings.IdleMinutes, Mode=TwoWay}" />
-              </views:InlineWrapPanel>
-              <StackPanel Spacing="4">
-                <ToggleSwitch x:Name="StartupSwitch" x:Uid="AutoStart" IsOn="{x:Bind Settings.AutoStart, Mode=TwoWay}" OnContent="" OffContent="" />
-                <HyperlinkButton x:Name="StartupSettingsLink" x:Uid="StartupSettingsLink" Click="OpenStartupSettings" Padding="0,4" HorizontalAlignment="Left" />
-              </StackPanel>
-              <TextBlock Text="{Binding Error}" Visibility="{Binding Error, Converter={StaticResource TextVisibility}}" Foreground="{ThemeResource SystemFillColorCriticalBrush}" TextWrapping="Wrap" />
-              <StackPanel Spacing="4">
-                <TextBlock x:Name="UpdatesHeading" FontWeight="SemiBold" />
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                  <Button x:Name="UpdateButton" Click="UpdateClicked" />
-                  <ProgressRing x:Name="UpdateProgress" Width="18" Height="18" Visibility="Collapsed" />
+              <Border Style="{StaticResource DwellCardStyle}">
+                <StackPanel>
+                  <Grid Style="{StaticResource SettingsRowStyle}">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <TextBlock x:Name="ThemeLabel" Style="{StaticResource SettingsLabelStyle}" />
+                    <ComboBox x:Name="ThemeCombo" Grid.Column="1" Width="160" VerticalAlignment="Center"
+                              automation:AutomationProperties.LabeledBy="{Binding ElementName=ThemeLabel}" SelectedIndex="{x:Bind Settings.ThemeIndex, Mode=TwoWay}">
+                      <ComboBoxItem x:Name="SystemThemeItem" x:Uid="SystemTheme" /><ComboBoxItem x:Name="LightThemeItem" x:Uid="LightTheme" /><ComboBoxItem x:Name="DarkThemeItem" x:Uid="DarkTheme" />
+                    </ComboBox>
+                  </Grid>
+                  <Border Height="1" Background="{ThemeResource DwellDividerBrush}" />
+                  <Grid Style="{StaticResource SettingsRowStyle}">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <TextBlock x:Name="LanguageLabel" Style="{StaticResource SettingsLabelStyle}" />
+                    <ComboBox x:Name="LanguageCombo" Grid.Column="1" Width="160" VerticalAlignment="Center"
+                              automation:AutomationProperties.LabeledBy="{Binding ElementName=LanguageLabel}" SelectedIndex="{x:Bind Settings.LanguageIndex, Mode=TwoWay}">
+                      <ComboBoxItem x:Name="SystemLanguageItem" x:Uid="SystemLanguage" /><ComboBoxItem x:Uid="RussianLanguage" /><ComboBoxItem x:Uid="EnglishLanguage" />
+                    </ComboBox>
+                  </Grid>
+                  <Border Height="1" Background="{ThemeResource DwellDividerBrush}" />
+                  <Grid Style="{StaticResource SettingsRowStyle}">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <TextBlock x:Name="IdleLabel" Style="{StaticResource SettingsLabelStyle}" />
+                    <NumberBox x:Name="IdleInput" Grid.Column="1" Width="160" VerticalAlignment="Center" Minimum="1" Maximum="60"
+                               SmallChange="1" SpinButtonPlacementMode="Inline" automation:AutomationProperties.LabeledBy="{Binding ElementName=IdleLabel}"
+                               Value="{x:Bind Settings.IdleMinutes, Mode=TwoWay}" />
+                  </Grid>
                 </StackPanel>
-                <TextBlock x:Name="UpdateStatus" Visibility="{Binding Text, ElementName=UpdateStatus, Converter={StaticResource TextVisibility}}" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" automation:AutomationProperties.LiveSetting="Polite" />
-              </StackPanel>
+              </Border>
+              <Border Style="{StaticResource DwellCardStyle}">
+                <Grid Style="{StaticResource SettingsRowStyle}">
+                  <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                  <StackPanel VerticalAlignment="Center">
+                    <TextBlock x:Name="StartupLabel" Style="{StaticResource SettingsLabelStyle}" />
+                    <HyperlinkButton x:Name="StartupSettingsLink" x:Uid="StartupSettingsLink" Click="OpenStartupSettings"
+                                     Padding="0,4" HorizontalAlignment="Left" />
+                  </StackPanel>
+                  <ToggleSwitch x:Name="StartupSwitch" Grid.Column="1" MinWidth="0" VerticalAlignment="Center"
+                                automation:AutomationProperties.LabeledBy="{Binding ElementName=StartupLabel}"
+                                IsOn="{x:Bind Settings.AutoStart, Mode=TwoWay}" OnContent="" OffContent="" />
+                </Grid>
+              </Border>
+              <TextBlock Text="{Binding Error}" Visibility="{Binding Error, Converter={StaticResource TextVisibility}}" Foreground="{ThemeResource SystemFillColorCriticalBrush}" TextWrapping="Wrap" />
+              <Border Style="{StaticResource DwellCardStyle}">
+                <StackPanel Spacing="8" Padding="16,12">
+                  <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <TextBlock x:Name="UpdatesHeading" Style="{StaticResource SettingsLabelStyle}" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                      <ProgressRing x:Name="UpdateProgress" Width="18" Height="18" Visibility="Collapsed" />
+                      <Button x:Name="UpdateButton" Click="UpdateClicked" />
+                    </StackPanel>
+                  </Grid>
+                  <TextBlock x:Name="UpdateStatus" Visibility="{Binding Text, ElementName=UpdateStatus, Converter={StaticResource TextVisibility}}" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" automation:AutomationProperties.LiveSetting="Polite" />
+                </StackPanel>
+              </Border>
             </StackPanel>
           </ScrollViewer>
         </Grid>

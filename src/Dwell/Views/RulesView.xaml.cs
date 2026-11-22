@@ -14,6 +14,7 @@ public sealed partial class RulesView : UserControl
     }
     public void Localize()
     {
+        PageTitle.Text = Strings.Get("RulesTitle");
         Heading.Text = Strings.Get("DailyLimits");
         TargetCombo.Header = Strings.Get("LimitTarget"); NewLimit.Header = Strings.Get("LimitMinutes");
         ToolTipService.SetToolTip(AddButton, Strings.Get("AddLimit"));

@@ -58,6 +58,13 @@ public sealed partial class MainWindow : Window
         var workArea = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary).WorkArea;
         AppWindow.Resize(new SizeInt32(Math.Min((int)(1140 * scale), workArea.Width), Math.Min((int)(720 * scale), workArea.Height)));
         AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "Assets", "Dwell.ico"));
+        if (AppWindowTitleBar.IsCustomizationSupported())
+        {
+            AppTitleBar.Title = Title;
+            AppTitleBar.Visibility = Visibility.Visible;
+            ExtendsContentIntoTitleBar = true;
+            SetTitleBar(AppTitleBar);
+        }
         Settings.ThemeChanged += ApplyTheme;
         Settings.LanguageChanged += ApplyLanguage;
         ApplyTheme(Settings.ThemeIndex);
@@ -124,12 +131,11 @@ public sealed partial class MainWindow : Window
 
     private void UpdatePersonalization()
     {
-        var useMica = Root.ActualTheme == ElementTheme.Dark && MicaController.IsSupported() &&
-            _uiSettings.AdvancedEffectsEnabled && !NativeMethods.HighContrastEnabled();
+        var useMica = MicaController.IsSupported() && _uiSettings.AdvancedEffectsEnabled && !NativeMethods.HighContrastEnabled();
         FallbackSurface.Visibility = useMica ? Visibility.Collapsed : Visibility.Visible;
         if (!useMica) { _mica?.Dispose(); _mica = null; _backdrop = null; return; }
         _backdrop ??= new SystemBackdropConfiguration { IsInputActive = _visible };
-        _backdrop.Theme = SystemBackdropTheme.Dark;
+        _backdrop.Theme = Root.ActualTheme == ElementTheme.Dark ? SystemBackdropTheme.Dark : SystemBackdropTheme.Light;
         if (_mica is null)
         {
             _mica = new MicaController();
@@ -151,14 +157,14 @@ public sealed partial class MainWindow : Window
         EmptyMessage.Text = Strings.Get("EmptyState.Text");
         MoreButton.Content = Strings.Get("ShowMore.Content");
         DayTab.Text = Strings.Get("Day"); WeekTab.Text = Strings.Get("Week");
-        ThemeCombo.Header = Strings.Get("ThemeCombo.Header");
+        ThemeLabel.Text = Strings.Get("ThemeCombo.Header");
         SystemThemeItem.Content = Strings.Get("SystemTheme.Content");
         LightThemeItem.Content = Strings.Get("LightTheme.Content");
         DarkThemeItem.Content = Strings.Get("DarkTheme.Content");
-        LanguageCombo.Header = Strings.Get("LanguageCombo.Header");
+        LanguageLabel.Text = Strings.Get("LanguageCombo.Header");
         SystemLanguageItem.Content = Strings.Get("SystemLanguage.Content");
-        IdleInput.Header = Strings.Get("IdleMinutes.Header");
-        StartupSwitch.Header = Strings.Get("AutoStart.Header");
+        IdleLabel.Text = Strings.Get("IdleMinutes.Header");
+        StartupLabel.Text = Strings.Get("AutoStart.Header");
         StartupSettingsLink.Content = Strings.Get("StartupSettingsLink.Content");
         ExcludedAppsItem.Content = ExcludedAppsHeading.Text = Strings.Get("ExcludedAppsHeading");
         PowerItem.Content = Strings.Get("PowerPageTitle");

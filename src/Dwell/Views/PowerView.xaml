@@ -26,7 +26,7 @@
     <Rectangle x:Name="TooltipTextSwatch" Fill="{ThemeResource TextFillColorPrimaryBrush}" />
   </StackPanel>
   <ScrollViewer HorizontalScrollBarVisibility="Disabled">
-    <StackPanel Padding="16,12,16,16" Spacing="16">
+    <StackPanel Padding="{StaticResource DwellPagePadding}" Spacing="16">
       <TextBlock x:Name="Heading" FontSize="24" FontWeight="SemiBold" />
       <StackPanel Spacing="8">
         <views:InlineWrapPanel ColumnSpacing="24" RowSpacing="8">
@@ -43,8 +43,7 @@
             </ComboBox.ItemTemplate>
           </ComboBox>
         </views:InlineWrapPanel>
-        <Border CornerRadius="12" Background="{ThemeResource DwellChartBrush}"
-                BorderBrush="{ThemeResource DwellBorderBrush}" BorderThickness="1">
+        <Border Style="{StaticResource DwellCardStyle}" Background="{ThemeResource DwellChartBrush}">
           <Grid Padding="8,8,8,0" Height="280">
             <lvc:CartesianChart x:Name="Chart" Visibility="Collapsed" Background="{ThemeResource DwellChartBrush}"
                                 LegendPosition="Hidden" TooltipPosition="Top" FindingStrategy="CompareOnlyXTakeClosest" AnimationsSpeed="0:0:0" />

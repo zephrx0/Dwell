@@ -1,9 +1,11 @@
 <UserControl x:Class="Dwell.Views.RulesView" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:automation="using:Microsoft.UI.Xaml.Automation" xmlns:views="using:Dwell.Views">
   <Grid>
     <ScrollViewer x:Name="Scroller" HorizontalScrollBarVisibility="Disabled">
-      <StackPanel x:Name="Sections" Padding="16,12,16,16" Spacing="16">
-        <StackPanel x:Name="DailySection" Spacing="12">
-          <TextBlock x:Name="Heading" FontSize="24" FontWeight="SemiBold" />
+      <StackPanel x:Name="Sections" Padding="{StaticResource DwellPagePadding}" Spacing="12">
+        <TextBlock x:Name="PageTitle" FontSize="24" FontWeight="SemiBold" />
+        <Border Style="{StaticResource DwellCardStyle}" Padding="16,12">
+          <StackPanel x:Name="DailySection" Spacing="12">
+          <TextBlock x:Name="Heading" FontSize="18" FontWeight="SemiBold" />
           <views:InlineWrapPanel>
             <ComboBox x:Name="TargetCombo" Width="192" ItemsSource="{Binding Targets}" DisplayMemberPath="Name" SelectedIndex="{Binding TargetIndex, Mode=TwoWay}" />
             <NumberBox x:Name="NewLimit" Width="128" Minimum="1" Maximum="1440" SpinButtonPlacementMode="Inline" Value="{Binding NewMinutes, Mode=TwoWay}" />
@@ -11,16 +13,23 @@
           </views:InlineWrapPanel>
           <ItemsControl ItemsSource="{Binding Limits}"><ItemsControl.ItemTemplate><DataTemplate><Grid ColumnSpacing="12" Padding="0,8"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="112" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="32" /></Grid.ColumnDefinitions><StackPanel Spacing="4"><TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="Wrap" /><TextBlock Text="{Binding Usage}" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" /><ProgressBar Height="4" MinHeight="4" Maximum="100" Value="{Binding Progress}" /></StackPanel><NumberBox Grid.Column="1" Value="{Binding Minutes, Mode=TwoWay}" Minimum="1" Maximum="1440" SpinButtonPlacementMode="Inline" automation:AutomationProperties.Name="{Binding LimitMinutesLabel}" VerticalAlignment="Center" /><ToggleSwitch Grid.Column="2" IsOn="{Binding Enabled, Mode=TwoWay}" OnContent="" OffContent="" automation:AutomationProperties.Name="{Binding EnabledLabel}" VerticalAlignment="Center" /><Button Grid.Column="3" Width="32" Height="32" Padding="0" Command="{Binding RemoveCommand}" automation:AutomationProperties.Name="{Binding RemoveLabel}" VerticalAlignment="Center"><FontIcon Glyph="&#xE74D;" FontSize="14" /></Button></Grid></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
         </StackPanel>
+        </Border>
+        <Border Style="{StaticResource DwellCardStyle}" Padding="16,12">
         <StackPanel x:Name="DowntimeSection" Spacing="12">
           <ToggleSwitch x:Name="RestToggle" IsOn="{Binding DowntimeEnabled, Mode=TwoWay}" OnContent="" OffContent="" />
           <views:InlineWrapPanel><TimePicker x:Name="StartTime" Width="192" Time="{Binding DowntimeStart, Mode=TwoWay}" IsEnabled="{Binding DowntimeEnabled}" /><TimePicker x:Name="EndTime" Width="192" Time="{Binding DowntimeEnd, Mode=TwoWay}" IsEnabled="{Binding DowntimeEnabled}" /></views:InlineWrapPanel>
         </StackPanel>
+        </Border>
+        <Border Style="{StaticResource DwellCardStyle}" Padding="16,12">
         <StackPanel x:Name="AllowedSection" Spacing="12">
           <TextBlock x:Name="AllowedHeading" FontSize="18" FontWeight="SemiBold" />
           <views:InlineWrapPanel><ComboBox x:Name="AllowedCombo" Width="192" ItemsSource="{Binding UserApps}" DisplayMemberPath="Name" SelectedIndex="{Binding AllowIndex, Mode=TwoWay}" /><Button x:Name="AllowButton" Command="{Binding AllowAppCommand}" Width="32" Height="32" Padding="0"><FontIcon Glyph="&#xE710;" FontSize="14" /></Button></views:InlineWrapPanel>
           <ItemsControl ItemsSource="{Binding Allowed}"><ItemsControl.ItemTemplate><DataTemplate><Grid Padding="0,4" ColumnSpacing="12"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><TextBlock Text="{Binding Name}" VerticalAlignment="Center" /><Button Grid.Column="1" Click="RemoveAllowedClicked" Padding="8" automation:AutomationProperties.Name="{Binding RemoveLabel}"><FontIcon Glyph="&#xE711;" FontSize="12" /></Button></Grid></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
         </StackPanel>
+        </Border>
+        <Border Style="{StaticResource DwellCardStyle}" Padding="16,12">
         <StackPanel x:Name="BreakSection" Spacing="12"><ToggleSwitch x:Name="BreakToggle" IsOn="{Binding BreaksEnabled, Mode=TwoWay}" OnContent="" OffContent="" /><NumberBox x:Name="BreakInterval" Width="240" HorizontalAlignment="Left" Minimum="5" Maximum="180" SpinButtonPlacementMode="Inline" Value="{Binding BreakMinutes, Mode=TwoWay}" IsEnabled="{Binding BreaksEnabled}" /></StackPanel>
+        </Border>
         <TextBlock Text="{Binding Error}" Visibility="{Binding Error, Converter={StaticResource TextVisibility}}" Foreground="{ThemeResource SystemFillColorCriticalBrush}" TextWrapping="Wrap" />
       </StackPanel>
     </ScrollViewer>
